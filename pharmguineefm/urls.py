@@ -16,7 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from pharmacies.views import accueil
+from pharmacies.views import accueil, tableau_de_bord
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -24,8 +24,14 @@ urlpatterns = [
     # Page publique de recherche (frontend)
     path('', accueil, name='accueil'),
 
+    # Espace de gestion réservé aux gestionnaires de pharmacie
+    path('pharmacie/', tableau_de_bord, name='tableau_de_bord'),
+
     # Inscription / connexion / déconnexion des patients
     path('patients/', include('patients.urls')),
+
+    # Tableau de bord réservé au ministère de la Santé (comptes staff)
+    path('ministere/', include('ministere.urls')),
 
     # Toutes les routes de l'API commencent par /api/
     # Ex : /api/recherche/?nom=paracetamol&lat=...&lng=...

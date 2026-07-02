@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ministère de la Santé — Tableau de bord PharmaSira</title>
+<style>
+    :root {
+        --vert: #1F6E43;
+        --vert-clair: #E3F1E9;
+        --bleu: #1F4E79;
+        --bleu-clair: #E8EEF4;
+        --rouge: #B00020;
+        --rouge-clair: #FCE8E6;
+        --gris: #6B7280;
+        --gris-clair: #E5E7EB;
+        --fond: #F4F7F6;
+    }
+    * { box-sizing: border-box; }
+    body {
+        font-family: -apple-system, "Segoe UI", Arial, sans-serif;
+        margin: 0;
+        background: var(--fond);
+        color: #1F2937;
+    }
+    header {
+        background: var(--bleu);
+        color: white;
+        padding: 20px 16px;
+        text-align: center;
+    }
+    header h1 { margin: 0; font-size: 1.3rem; }
+    header p { margin: 4px 0 0; font-size: 0.85rem; opacity: 0.9; }
+    header a { color: white; }
+
+    main { max-width: 920px; margin: 0 auto; padding: 18px 16px 40px; }
+
+    section { margin-bottom: 32px; }
+    section h2 {
+        font-size: 1.1rem;
+        color: var(--bleu);
+        border-bottom: 2px solid var(--gris-clair);
+        padding-bottom: 6px;
+        margin-bottom: 14px;
+    }
+
+    .cartes {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 12px;
+    }
+    .carte {
+        background: white;
+        border-radius: 8px;
+        padding: 16px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .carte .chiffre { font-size: 1.7rem; font-weight: 700; color: var(--bleu); }
+    .carte .chiffre.alerte { color: var(--rouge); }
+    .carte .libelle { font-size: 0.82rem; color: var(--gris); margin-top: 2px; }
+
+    table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; }
+    th, td { text-align: left; padding: 10px 12px; font-size: 0.88rem; border-bottom: 1px solid var(--gris-clair); }
+    th { background: #F0F2F1; color: var(--gris); font-weight: 600; font-size: 0.8rem; text-transform: uppercase; }
+
+    .badge {
+        display: inline-block;
+        padding: 2px 9px;
+        border-radius: 10px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    .badge.rouge { background: var(--rouge-clair); color: var(--rouge); }
+    .badge.vert { background: var(--vert-clair); color: var(--vert); }
+    .badge.bleu { background: var(--bleu-clair); color: var(--bleu); }
+
+    .alerte-carte {
+        background: var(--rouge-clair);
+        border-left: 4px solid var(--rouge);
+        border-radius: 6px;
+        padding: 12px 16px;
+        margin-bottom: 8px;
+    }
+    .alerte-carte strong { color: var(--rouge); }
+    .alerte-carte .detail { font-size: 0.85rem; color: #7A1620; margin-top: 2px; }
+
+    .vide { color: var(--gris); font-size: 0.9rem; font-style: italic; }
+</style>
+</head>
+<body>
+
+<header>
+    <h1>Tableau de bord — Ministère de la Santé</h1>
+    <p>Suivi des pénuries et des tendances · <a href="{% url 'accueil' %}">Retour à la recherche publique</a></p>
+</header>
+
+<main>
+    <section>
+        <h2>Vue d'ensemble</h2>
+        <div class="cartes">
+            <div class="carte">
+                <div class="chiffre">{{ total_pharmacies }}</div>
+                <div class="libelle">Pharmacies vérifiées</div>
+            </div>
+            <div class="carte">
+                <div class="chiffre">{{ total_medicaments }}</div>
+                <div class="libelle">Médicaments catalogués</div>
+            </div>
+            <div class="carte">
+                <div class="chiffre">{{ total_lignes_stock }}</div>
+                <div class="libelle">Lignes de stock suivies</div>
+            </div>
+            <div class="carte">
+                <div class="chiffre {% if taux_rupture_global > 20 %}alerte{% endif %}">{{ taux_rupture_global }}%</div>
+                <div class="libelle">Taux de rupture global ({{ total_en_rupture }} lignes à 0)</div>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <h2>Médicaments critiques ({{ medicaments_critiques|length }})</h2>
+        <p class="libelle" style="color: var(--gris); font-size: 0.85rem; margin-top: -8px;">
+            Sous ordonnance et en rupture dans au moins 2 pharmacies vérifiées — nécessitent une attention prioritaire.
+        </p>
+        {% if medicaments_critiques %}
+            {% for medicament in medicaments_critiques %}
+                <div class="alerte-carte">
+                    <strong>{{ medicament.nom_commercial }}</strong> ({{ medicament.dci }})
+                    <div class="detail">
+                        En rupture dans {{ medicament.nb_pharmacies_rupture }} pharmacie(s) sur {{ medicament.nb_pharmacies_total }} qui le référencent · Catégorie : {{ medicament.categorie }}
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p class="vide">Aucune alerte critique pour le moment.</p>
+        {% endif %}
+    </section>
+
+    <section>
+        <h2>Pénuries par médicament</h2>
+        {% if penuries_par_medicament %}
+            <table>
+                <thead>
+                    <tr><th>Médicament</th><th>DCI</th><th>Catégorie</th><th>Pharmacies en rupture</th><th>Statut</th></tr>
+                </thead>
+                <tbody>
+                {% for medicament in penuries_par_medicament %}
+                    <tr>
+                        <td>{{ medicament.nom_commercial }}</td>
+                        <td>{{ medicament.dci }}</td>
+                        <td>{{ medicament.categorie }}</td>
+                        <td>{{ medicament.nb_pharmacies_rupture }} / {{ medicament.nb_pharmacies_total }}</td>
+                        <td>
+                            {% if medicament.est_sur_ordonnance and medicament.nb_pharmacies_rupture >= 2 %}
+                                <span class="badge rouge">Critique</span>
+                            {% elif medicament.nb_pharmacies_rupture >= 2 %}
+                                <span class="badge bleu">À surveiller</span>
+                            {% else %}
+                                <span class="badge vert">Localisée</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p class="vide">Aucune pénurie détectée pour le moment.</p>
+        {% endif %}
+    </section>
+
+    <section>
+        <h2>Tendances régionales (par quartier)</h2>
+        <table>
+            <thead>
+                <tr><th>Quartier</th><th>Pharmacies vérifiées</th><th>Lignes de stock</th><th>Ruptures</th><th>Taux de rupture</th></tr>
+            </thead>
+            <tbody>
+            {% for ligne in tendances_par_quartier %}
+                <tr>
+                    <td>{{ ligne.quartier }}</td>
+                    <td>{{ ligne.nb_pharmacies }}</td>
+                    <td>{{ ligne.nb_lignes_stock }}</td>
+                    <td>{{ ligne.nb_ruptures }}</td>
+                    <td>
+                        {% if ligne.taux_rupture > 20 %}
+                            <span class="badge rouge">{{ ligne.taux_rupture }}%</span>
+                        {% else %}
+                            <span class="badge vert">{{ ligne.taux_rupture }}%</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </section>
+
+    <section>
+        <h2>Commandes par statut</h2>
+        {% if commandes_par_statut %}
+            <table>
+                <thead>
+                    <tr><th>Statut</th><th>Total</th></tr>
+                </thead>
+                <tbody>
+                {% for ligne in commandes_par_statut %}
+                    <tr>
+                        <td>{{ ligne.statut }}</td>
+                        <td>{{ ligne.total }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p class="vide">Aucune commande enregistrée pour le moment.</p>
+        {% endif %}
+    </section>
+</main>
+
+</body>
+</html>

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Espace pharmacie — {{ pharmacie.nom }}</title>
+<style>
+    :root {
+        --vert: #1F6E43;
+        --vert-clair: #E3F1E9;
+        --bleu: #1F4E79;
+        --gris: #6B7280;
+        --gris-clair: #E5E7EB;
+        --fond: #F4F7F6;
+    }
+    * { box-sizing: border-box; }
+    body {
+        font-family: -apple-system, "Segoe UI", Arial, sans-serif;
+        margin: 0;
+        background: var(--fond);
+        color: #1F2937;
+    }
+    header {
+        background: var(--bleu);
+        color: white;
+        padding: 20px 16px;
+        text-align: center;
+    }
+    header h1 { margin: 0; font-size: 1.3rem; }
+    header p { margin: 4px 0 0; font-size: 0.85rem; opacity: 0.9; }
+    header a { color: white; }
+
+    main { max-width: 760px; margin: 0 auto; padding: 18px 16px 40px; }
+
+    .messages { margin-bottom: 16px; }
+    .message {
+        padding: 10px 14px;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        margin-bottom: 8px;
+    }
+    .message.success { background: var(--vert-clair); color: var(--vert); }
+    .message.error { background: #FCE8E6; color: #B00020; }
+
+    section { margin-bottom: 32px; }
+    section h2 {
+        font-size: 1.1rem;
+        color: var(--bleu);
+        border-bottom: 2px solid var(--gris-clair);
+        padding-bottom: 6px;
+        margin-bottom: 14px;
+    }
+
+    table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; }
+    th, td { text-align: left; padding: 10px 12px; font-size: 0.88rem; border-bottom: 1px solid var(--gris-clair); }
+    th { background: #F0F2F1; color: var(--gris); font-weight: 600; font-size: 0.8rem; text-transform: uppercase; }
+
+    input[type="number"], select {
+        width: 90px;
+        padding: 6px 8px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-size: 0.88rem;
+    }
+    select { width: auto; min-width: 200px; }
+
+    .bouton {
+        padding: 7px 12px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        color: white;
+    }
+    .bouton.vert { background: var(--vert); }
+    .bouton.bleu { background: var(--bleu); }
+    .bouton.rouge { background: #B00020; }
+
+    .ligne-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    .carte-ajout {
+        background: white;
+        border: 1px solid var(--gris-clair);
+        border-radius: 8px;
+        padding: 16px;
+    }
+    .carte-ajout form { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+    .vide { color: var(--gris); font-size: 0.9rem; font-style: italic; }
+
+    /* Grille pour les stocks : remplace un <table> classique, car chaque
+       ligne est son propre <form> (impossible proprement avec un <table>) */
+    .grille-stocks { background: white; border-radius: 8px; overflow: hidden; }
+    .grille-entete, .grille-ligne {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr auto;
+        gap: 10px;
+        align-items: center;
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--gris-clair);
+    }
+    .grille-entete {
+        background: #F0F2F1; color: var(--gris);
+        font-weight: 600; font-size: 0.8rem; text-transform: uppercase;
+    }
+    .grille-ligne { font-size: 0.9rem; }
+</style>
+</head>
+<body>
+
+<header>
+    <h1>Espace pharmacie — {{ pharmacie.nom }}</h1>
+    <p>{{ pharmacie.get_quartier_display }} · <a href="{% url 'accueil' %}">Retour à la recherche publique</a></p>
+</header>
+
+<main>
+    {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+                <div class="message {{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <section>
+        <h2>Commandes à traiter ({{ commandes|length }})</h2>
+        {% if commandes %}
+            <table>
+                <thead>
+                    <tr><th>Patient</th><th>Médicament</th><th>Qté</th><th>Statut</th><th>Livraison</th><th>Actions</th></tr>
+                </thead>
+                <tbody>
+                {% for commande in commandes %}
+                    <tr>
+                        <td>{{ commande.patient.username }}</td>
+                        <td>{{ commande.stock.medicament.nom_commercial }}</td>
+                        <td>{{ commande.quantite }}</td>
+                        <td>{{ commande.get_statut_display }}</td>
+                        <td>{{ commande.get_mode_livraison_display }}</td>
+                        <td class="ligne-actions">
+                            {% if commande.statut == "en_attente" %}
+                                <form method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="valider_commande">
+                                    <input type="hidden" name="commande_id" value="{{ commande.pk }}">
+                                    <button class="bouton vert" type="submit">Valider</button>
+                                </form>
+                                <form method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="refuser_commande">
+                                    <input type="hidden" name="commande_id" value="{{ commande.pk }}">
+                                    <button class="bouton rouge" type="submit">Refuser</button>
+                                </form>
+                            {% else %}
+                                <form method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="marquer_livree">
+                                    <input type="hidden" name="commande_id" value="{{ commande.pk }}">
+                                    <button class="bouton bleu" type="submit">Marquer livrée</button>
+                                </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p class="vide">Aucune commande en attente pour le moment.</p>
+        {% endif %}
+    </section>
+
+    <section>
+        <h2>Vos stocks</h2>
+        {% if stocks %}
+            <div class="grille-stocks">
+                <div class="grille-entete">
+                    <div>Médicament</div>
+                    <div>Quantité</div>
+                    <div>Prix (GNF)</div>
+                    <div></div>
+                </div>
+                {% for stock in stocks %}
+                    <form method="post" class="grille-ligne">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="maj_stock">
+                        <input type="hidden" name="stock_id" value="{{ stock.pk }}">
+                        <div>{{ stock.medicament.nom_commercial }}</div>
+                        <div><input type="number" name="quantite_disponible" value="{{ stock.quantite_disponible }}" min="0"></div>
+                        <div><input type="number" name="prix_unitaire_gnf" value="{{ stock.prix_unitaire_gnf }}" min="0"></div>
+                        <div><button class="bouton vert" type="submit">Mettre à jour</button></div>
+                    </form>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="vide">Aucun médicament référencé pour l'instant. Ajoutez-en un ci-dessous.</p>
+        {% endif %}
+    </section>
+
+    <section>
+        <h2>Ajouter un médicament au catalogue</h2>
+        <div class="carte-ajout">
+            {% if medicaments_disponibles %}
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="ajouter_stock">
+                    <select name="medicament_id" required>
+                        <option value="">Choisir un médicament...</option>
+                        {% for medicament in medicaments_disponibles %}
+                            <option value="{{ medicament.pk }}">{{ medicament.nom_commercial }} ({{ medicament.dci }})</option>
+                        {% endfor %}
+                    </select>
+                    <input type="number" name="nouvelle_quantite" placeholder="Quantité" min="0" required>
+                    <input type="number" name="nouveau_prix" placeholder="Prix (GNF)" min="0" required>
+                    <button class="bouton bleu" type="submit">Ajouter</button>
+                </form>
+            {% else %}
+                <p class="vide">Tous les médicaments du catalogue national sont déjà référencés dans votre officine.</p>
+            {% endif %}
+        </div>
+    </section>
+</main>
+
+</body>
+</html>

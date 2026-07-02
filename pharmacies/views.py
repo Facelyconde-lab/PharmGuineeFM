@@ -1,11 +1,15 @@
-from django.shortcuts import render
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.csrf import ensure_csrf_cookie
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from geopy.distance import geodesic
 
+from commandes.models import Commande
+from medicaments.models import Medicament
 from medicaments.utils import retirer_accents
-from .models import Stock
+from .models import Pharmacie, Stock
 
 
 @ensure_csrf_cookie
@@ -73,3 +77,95 @@ def recherche_medicament(request):
     donnees.sort(key=lambda d: d["distance_km"])
 
     return Response(donnees)
+
+
+@login_required
+def tableau_de_bord(request):
+    """
+    Espace de gestion réservé au gestionnaire d'une pharmacie : mise à jour
+    des stocks (quantités, prix), ajout de nouveaux médicaments au catalogue
+    de l'officine, et traitement des commandes reçues (valider / refuser /
+    marquer comme livrée).
+    """
+    pharmacie = Pharmacie.objects.filter(compte_gestionnaire=request.user).first()
+    if pharmacie is None:
+        messages.error(request, "Votre compte ne gère aucune pharmacie pour le moment.")
+        return redirect("accueil")
+
+    if request.method == "POST":
+        action = request.POST.get("action")
+
+        if action == "maj_stock":
+            # Modifier la quantité et/ou le prix d'un médicament déjà au catalogue
+            stock = get_object_or_404(Stock, pk=request.POST.get("stock_id"), pharmacie=pharmacie)
+            stock.quantite_disponible = int(request.POST.get("quantite_disponible", stock.quantite_disponible))
+            stock.prix_unitaire_gnf = int(request.POST.get("prix_unitaire_gnf", stock.prix_unitaire_gnf))
+            stock.save()
+            messages.success(request, f"Stock de « {stock.medicament} » mis à jour.")
+
+        elif action == "ajouter_stock":
+            # Ajouter un médicament du catalogue national qui n'est pas encore
+            # référencé pour cette officine (ou mettre à jour s'il l'est déjà)
+            medicament = get_object_or_404(Medicament, pk=request.POST.get("medicament_id"))
+            quantite = int(request.POST.get("nouvelle_quantite", 0) or 0)
+            prix = int(request.POST.get("nouveau_prix", 0) or 0)
+            stock, cree = Stock.objects.get_or_create(
+                pharmacie=pharmacie,
+                medicament=medicament,
+                defaults={"quantite_disponible": quantite, "prix_unitaire_gnf": prix},
+            )
+            if not cree:
+                stock.quantite_disponible = quantite
+                stock.prix_unitaire_gnf = prix
+                stock.save()
+            messages.success(request, f"« {medicament} » ajouté à votre catalogue.")
+
+        elif action == "valider_commande":
+            commande = get_object_or_404(
+                Commande, pk=request.POST.get("commande_id"), stock__pharmacie=pharmacie
+            )
+            commande.statut = "validee"
+            commande.save(update_fields=["statut"])
+            messages.success(request, f"Commande #{commande.pk} validée.")
+
+        elif action == "refuser_commande":
+            commande = get_object_or_404(
+                Commande, pk=request.POST.get("commande_id"), stock__pharmacie=pharmacie
+            )
+            # La quantité réservée est restituée au stock puisque la commande n'aura pas lieu
+            commande.stock.quantite_disponible += commande.quantite
+            commande.stock.save(update_fields=["quantite_disponible"])
+            commande.statut = "annulee"
+            commande.save(update_fields=["statut"])
+            messages.success(request, f"Commande #{commande.pk} refusée, stock restitué.")
+
+        elif action == "marquer_livree":
+            commande = get_object_or_404(
+                Commande, pk=request.POST.get("commande_id"), stock__pharmacie=pharmacie
+            )
+            commande.statut = "livree"
+            commande.save(update_fields=["statut"])
+            messages.success(request, f"Commande #{commande.pk} marquée comme livrée.")
+
+        # Redirection après traitement pour éviter qu'un rafraîchissement de
+        # page (F5) ne renvoie accidentellement le même formulaire deux fois
+        return redirect("tableau_de_bord")
+
+    stocks = pharmacie.stocks.select_related("medicament").order_by("medicament__nom_commercial")
+    medicaments_deja_references = stocks.values_list("medicament_id", flat=True)
+    medicaments_disponibles = Medicament.objects.exclude(pk__in=medicaments_deja_references)
+
+    commandes = (
+        Commande.objects.filter(stock__pharmacie=pharmacie)
+        .exclude(statut__in=["livree", "annulee"])
+        .select_related("stock__medicament", "patient")
+        .order_by("-date_creation")
+    )
+
+    contexte = {
+        "pharmacie": pharmacie,
+        "stocks": stocks,
+        "medicaments_disponibles": medicaments_disponibles,
+        "commandes": commandes,
+    }
+    return render(request, "pharmacies/tableau_de_bord.html", contexte)

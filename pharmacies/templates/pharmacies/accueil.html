@@ -196,6 +196,14 @@
 <div class="barre-compte">
     {% if user.is_authenticated %}
         <span>Connecté(e) en tant que <strong>{{ user.username }}</strong></span>
+        {% if user.pharmacie_geree %}
+            <span>·</span>
+            <a href="{% url 'tableau_de_bord' %}">Espace pharmacie</a>
+        {% endif %}
+        {% if user.is_staff %}
+            <span>·</span>
+            <a href="{% url 'ministere:tableau_de_bord' %}">Tableau de bord ministère</a>
+        {% endif %}
         <span>·</span>
         <a href="{% url 'patients:deconnexion' %}">Se déconnecter</a>
     {% else %}
