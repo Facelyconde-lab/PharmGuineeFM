@@ -89,6 +89,16 @@
 
     .vide { color: var(--gris); font-size: 0.9rem; font-style: italic; }
 
+    .alertes-stock { display: flex; flex-direction: column; gap: 8px; }
+    .alerte-stock {
+        padding: 10px 14px;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        border-left: 4px solid;
+    }
+    .alerte-stock.rupture { background: #FCE8E6; color: #B00020; border-left-color: #B00020; }
+    .alerte-stock.faible { background: #FFF4E0; color: #8A5A00; border-left-color: #E29200; }
+
     /* Grille pour les stocks : remplace un <table> classique, car chaque
        ligne est son propre <form> (impossible proprement avec un <table>) */
     .grille-stocks { background: white; border-radius: 8px; overflow: hidden; }
@@ -121,6 +131,24 @@
                 <div class="message {{ message.tags }}">{{ message }}</div>
             {% endfor %}
         </div>
+    {% endif %}
+
+    {% if stocks_a_alerter %}
+        <section>
+            <h2>⚠️ À réapprovisionner ({{ stocks_a_alerter|length }})</h2>
+            <div class="alertes-stock">
+                {% for stock in stocks_a_alerter %}
+                    <div class="alerte-stock {% if stock.est_en_rupture %}rupture{% else %}faible{% endif %}">
+                        <strong>{{ stock.medicament.nom_commercial }}</strong>
+                        {% if stock.est_en_rupture %}
+                            — en rupture totale
+                        {% else %}
+                            — il ne reste que {{ stock.quantite_disponible }} unité(s)
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
     {% endif %}
 
     <section>

@@ -14,6 +14,8 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
 from pharmacies.views import accueil, tableau_de_bord
@@ -42,3 +44,9 @@ urlpatterns = [
     # (rest_framework), pratique pour tester les endpoints protégés depuis le navigateur
     path('api-auth/', include('rest_framework.urls')),
 ]
+
+# En développement (DEBUG=True), Django sert lui-même les fichiers envoyés
+# par les utilisateurs (photos, ordonnances). En production, c'est le
+# serveur web (ou PythonAnywhere, via l'onglet "Static files") qui s'en charge.
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -155,6 +155,14 @@ def tableau_de_bord(request):
     medicaments_deja_references = stocks.values_list("medicament_id", flat=True)
     medicaments_disponibles = Medicament.objects.exclude(pk__in=medicaments_deja_references)
 
+    # Alerte automatique : tout médicament en rupture (0) ou en stock faible
+    # (<= SEUIL_ALERTE_STOCK) est mis en avant ici, pour que le gestionnaire
+    # le voie dès l'ouverture du tableau de bord sans parcourir tout le
+    # tableau "Vos stocks".
+    stocks_a_alerter = stocks.filter(
+        quantite_disponible__lte=Stock.SEUIL_ALERTE_STOCK
+    ).order_by("quantite_disponible")
+
     commandes = (
         Commande.objects.filter(stock__pharmacie=pharmacie)
         .exclude(statut__in=["livree", "annulee"])
@@ -167,5 +175,6 @@ def tableau_de_bord(request):
         "stocks": stocks,
         "medicaments_disponibles": medicaments_disponibles,
         "commandes": commandes,
+        "stocks_a_alerter": stocks_a_alerter,
     }
     return render(request, "pharmacies/tableau_de_bord.html", contexte)

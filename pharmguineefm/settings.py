@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 
+from decouple import Csv, config
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -20,12 +22,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-1_036a%8&#5xr(33!7d@$zd$=n$t60gd^7g(8rg=53z29u#io@'
+# La clé et tous les réglages sensibles viennent maintenant du fichier .env
+# (jamais versionné dans Git, voir .gitignore), lu grâce à python-decouple.
+# En local, un fichier .env.example montre quelles variables définir.
+SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1,localhost', cast=Csv())
 
 
 # Application definition
@@ -82,12 +87,35 @@ WSGI_APPLICATION = 'pharmguineefm.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+# SQLite reste la base par défaut pour l'instant : le MySQL fourni par MAMP
+# (5.7) est trop ancien pour Django 5.2 (il faut 8.0+), et les comptes
+# gratuits PythonAnywhere créés après janvier 2026 n'incluent plus MySQL
+# (réservé à l'offre payante Developer). SQLite tient très bien la charge
+# pour un projet pilote. DB_ENGINE=mysql dans le .env permet de basculer
+# plus tard, si un hébergement avec MySQL 8+ est disponible.
+if config('DB_ENGINE', default='sqlite') == 'sqlite':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': config('DB_NAME'),
+            'USER': config('DB_USER'),
+            'PASSWORD': config('DB_PASSWORD'),
+            'HOST': config('DB_HOST', default='127.0.0.1'),
+            'PORT': config('DB_PORT', default='3306'),
+            'OPTIONS': {
+                # utf8mb4 : jeu de caractères complet, nécessaire pour bien
+                # stocker les accents français et les éventuels emojis
+                'charset': 'utf8mb4',
+            },
+        }
+    }
 
 
 # Password validation
@@ -132,6 +160,15 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+
+# Dossier où "collectstatic" rassemble tous les fichiers statiques avant le
+# déploiement (nécessaire en production ; en local avec runserver, Django
+# sert les fichiers directement sans passer par ce dossier).
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# Fichiers envoyés par les utilisateurs (photos de médicaments, ordonnances)
+MEDIA_URL = 'media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

@@ -63,6 +63,13 @@ class Stock(models.Model):
     et prix pratiqué. C'est la table interrogée à chaque recherche patient.
     """
 
+    # En dessous (ou à hauteur) de cette quantité, on considère le stock comme
+    # "faible" et on alerte la pharmacie pour qu'elle se réapprovisionne avant
+    # la rupture totale. Valeur simple et unique pour l'instant (MVP) ; à terme,
+    # ce seuil pourrait varier par médicament (ex : plus élevé pour les
+    # antipaludiques en saison des pluies).
+    SEUIL_ALERTE_STOCK = 5
+
     pharmacie = models.ForeignKey(Pharmacie, on_delete=models.CASCADE, related_name="stocks")
     medicament = models.ForeignKey(Medicament, on_delete=models.CASCADE, related_name="stocks")
 
@@ -86,3 +93,9 @@ class Stock(models.Model):
     @property
     def est_en_rupture(self):
         return self.quantite_disponible == 0
+
+    @property
+    def est_stock_faible(self):
+        # > 0 pour ne pas doubler avec est_en_rupture : un stock à 0 est déjà
+        # signalé comme rupture, pas la peine de le compter deux fois
+        return 0 < self.quantite_disponible <= self.SEUIL_ALERTE_STOCK

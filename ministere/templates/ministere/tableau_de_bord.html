@@ -114,6 +114,10 @@
                 <div class="chiffre {% if taux_rupture_global > 20 %}alerte{% endif %}">{{ taux_rupture_global }}%</div>
                 <div class="libelle">Taux de rupture global ({{ total_en_rupture }} lignes à 0)</div>
             </div>
+            <div class="carte">
+                <div class="chiffre">{{ total_stock_faible }}</div>
+                <div class="libelle">Lignes en stock faible (≤ {{ seuil_alerte_stock }} unités)</div>
+            </div>
         </div>
     </section>
 
@@ -165,6 +169,32 @@
             </table>
         {% else %}
             <p class="vide">Aucune pénurie détectée pour le moment.</p>
+        {% endif %}
+    </section>
+
+    <section>
+        <h2>Stocks faibles à surveiller (≤ {{ seuil_alerte_stock }} unités)</h2>
+        <p class="libelle" style="color: var(--gris); font-size: 0.85rem; margin-top: -8px;">
+            Alerte précoce, avant que ces médicaments ne tombent en rupture totale.
+        </p>
+        {% if stocks_faibles_par_medicament %}
+            <table>
+                <thead>
+                    <tr><th>Médicament</th><th>DCI</th><th>Catégorie</th><th>Pharmacies en stock faible</th></tr>
+                </thead>
+                <tbody>
+                {% for medicament in stocks_faibles_par_medicament %}
+                    <tr>
+                        <td>{{ medicament.nom_commercial }}</td>
+                        <td>{{ medicament.dci }}</td>
+                        <td>{{ medicament.categorie }}</td>
+                        <td>{{ medicament.nb_pharmacies_stock_faible }} / {{ medicament.nb_pharmacies_total }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p class="vide">Aucun médicament en stock faible pour le moment.</p>
         {% endif %}
     </section>
 
