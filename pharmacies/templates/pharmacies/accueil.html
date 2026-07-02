@@ -29,6 +29,15 @@
     header h1 { margin: 0; font-size: 1.4rem; }
     header p { margin: 4px 0 0; font-size: 0.9rem; opacity: 0.9; }
 
+    .barre-compte {
+        text-align: center;
+        font-size: 0.85rem;
+        padding: 8px 16px;
+        background: var(--bleu);
+        color: white;
+    }
+    .barre-compte a { color: white; text-decoration: underline; }
+
     main { max-width: 640px; margin: 0 auto; padding: 16px; }
 
     .recherche-form {
@@ -80,6 +89,19 @@
         border-radius: 12px;
         margin-top: 6px;
     }
+    .resultat .bouton-reserver {
+        display: block;
+        width: 100%;
+        margin-top: 10px;
+        padding: 10px;
+        font-size: 0.95rem;
+        background: var(--bleu);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+    .resultat .bouton-reserver:disabled { background: #999; cursor: default; }
 
     #message { font-size: 0.9rem; color: var(--gris); margin-top: 10px; }
 
@@ -96,6 +118,16 @@
     <p>Trouvez un médicament disponible près de vous à Conakry</p>
 </header>
 
+<div class="barre-compte">
+    {% if user.is_authenticated %}
+        Connecté(e) en tant que <strong>{{ user.username }}</strong> —
+        <a href="{% url 'patients:deconnexion' %}">Se déconnecter</a>
+    {% else %}
+        <a href="{% url 'patients:connexion' %}">Se connecter</a> pour pouvoir réserver —
+        <a href="{% url 'patients:inscription' %}">créer un compte</a>
+    {% endif %}
+</div>
+
 <main>
     <form class="recherche-form" id="form-recherche">
         <input type="text" id="nom-medicament" placeholder="Nom du médicament (ex: Paracétamol)" required>
@@ -108,6 +140,53 @@
 </main>
 
 <script>
+    // Est-ce que le visiteur est connecté ? (valeur injectée par Django,
+    // pas par JavaScript, donc fiable même si le patient recharge la page)
+    const estConnecte = {{ user.is_authenticated|yesno:"true,false" }};
+
+    // Django exige un jeton CSRF sur toute requête qui modifie des données
+    // (ici POST /api/commandes/) envoyée depuis une page avec session
+    // utilisateur. Ce jeton est stocké dans un cookie ; cette fonction va le lire.
+    function lireCookie(nom) {
+        const valeur = document.cookie
+            .split("; ")
+            .find((ligne) => ligne.startsWith(nom + "="));
+        return valeur ? decodeURIComponent(valeur.split("=")[1]) : null;
+    }
+
+    async function reserver(stockId, bouton) {
+        bouton.disabled = true;
+        bouton.textContent = "Réservation en cours...";
+        try {
+            const reponse = await fetch("/api/commandes/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": lireCookie("csrftoken"),
+                },
+                credentials: "same-origin",
+                body: JSON.stringify({
+                    stock: stockId,
+                    quantite: 1,
+                    mode_livraison: "retrait",
+                }),
+            });
+            const donnees = await reponse.json();
+
+            if (reponse.ok) {
+                bouton.textContent = "Réservé !";
+            } else {
+                bouton.disabled = false;
+                bouton.textContent = "Réserver";
+                alert(donnees.detail || JSON.stringify(donnees));
+            }
+        } catch (erreur) {
+            bouton.disabled = false;
+            bouton.textContent = "Réserver";
+            alert("Impossible de contacter le serveur.");
+        }
+    }
+
     // Coordonnées de repli : centre approximatif de Conakry, utilisées si le
     // patient refuse le partage de sa position (le résultat reste utile,
     // juste moins précis sur les distances).
@@ -171,6 +250,20 @@
                     <div class="ligne">Quantité disponible : ${resultat.quantite_disponible}</div>
                     <div class="distance">${resultat.distance_km} km</div>
                 `;
+
+                const bouton = document.createElement("button");
+                bouton.className = "bouton-reserver";
+                if (estConnecte) {
+                    bouton.textContent = "Réserver";
+                    bouton.addEventListener("click", () => reserver(resultat.stock_id, bouton));
+                } else {
+                    bouton.textContent = "Se connecter pour réserver";
+                    bouton.addEventListener("click", () => {
+                        window.location.href = "/patients/connexion/";
+                    });
+                }
+                carte.appendChild(bouton);
+
                 resultatsDiv.appendChild(carte);
             });
         } catch (erreur) {

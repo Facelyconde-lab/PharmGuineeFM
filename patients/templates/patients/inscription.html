@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inscription — PharmaSira Guinée</title>
+<style>
+    :root { --vert: #1F6E43; --bleu: #1F4E79; }
+    * { box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; margin: 0; background: #F7F9F8; color: #222; }
+    header { background: var(--vert); color: white; padding: 20px 16px; text-align: center; }
+    header h1 { margin: 0; font-size: 1.4rem; }
+    main { max-width: 420px; margin: 30px auto; padding: 0 16px; }
+    form { background: white; border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; }
+    label { display: block; font-size: 0.9rem; margin: 10px 0 4px; }
+    input { width: 100%; padding: 10px; font-size: 1rem; border: 1px solid #ccc; border-radius: 6px; }
+    button {
+        width: 100%; margin-top: 16px; padding: 12px; font-size: 1rem;
+        background: var(--vert); color: white; border: none; border-radius: 6px; cursor: pointer;
+    }
+    .erreurs { color: #b00020; font-size: 0.85rem; margin-top: 6px; }
+    .lien { text-align: center; margin-top: 14px; font-size: 0.9rem; }
+    .lien a { color: var(--bleu); }
+</style>
+</head>
+<body>
+<header><h1>PharmaSira Guinée</h1></header>
+<main>
+    <h2>Créer un compte patient</h2>
+    <form method="post">
+        {% csrf_token %}
+        <label for="{{ formulaire.username.id_for_label }}">Nom d'utilisateur</label>
+        {{ formulaire.username }}
+
+        <label for="{{ formulaire.password1.id_for_label }}">Mot de passe</label>
+        {{ formulaire.password1 }}
+
+        <label for="{{ formulaire.password2.id_for_label }}">Confirmer le mot de passe</label>
+        {{ formulaire.password2 }}
+
+        {% if formulaire.errors %}
+            <div class="erreurs">
+                {% for champ in formulaire %}
+                    {% for erreur in champ.errors %}<div>{{ erreur }}</div>{% endfor %}
+                {% endfor %}
+                {% for erreur in formulaire.non_field_errors %}<div>{{ erreur }}</div>{% endfor %}
+            </div>
+        {% endif %}
+
+        <button type="submit">Créer mon compte</button>
+    </form>
+    <div class="lien">Déjà inscrit ? <a href="{% url 'patients:connexion' %}">Se connecter</a></div>
+</main>
+</body>
+</html>

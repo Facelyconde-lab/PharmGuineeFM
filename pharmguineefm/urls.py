@@ -24,6 +24,9 @@ urlpatterns = [
     # Page publique de recherche (frontend)
     path('', accueil, name='accueil'),
 
+    # Inscription / connexion / déconnexion des patients
+    path('patients/', include('patients.urls')),
+
     # Toutes les routes de l'API commencent par /api/
     # Ex : /api/recherche/?nom=paracetamol&lat=...&lng=...
     path('api/', include('pharmacies.urls')),

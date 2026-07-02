@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.views.decorators.csrf import ensure_csrf_cookie
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from geopy.distance import geodesic
@@ -6,8 +7,14 @@ from geopy.distance import geodesic
 from .models import Stock
 
 
+@ensure_csrf_cookie
 def accueil(request):
-    """Page publique de recherche : formulaire + résultats affichés en JavaScript (fetch)."""
+    """
+    Page publique de recherche : formulaire + résultats affichés en JavaScript (fetch).
+    @ensure_csrf_cookie garantit que le cookie CSRF est posé dès l'arrivée sur la
+    page, nécessaire pour que le bouton "Réserver" (requête POST en JavaScript)
+    fonctionne, même si la page ne contient elle-même aucun <form> classique.
+    """
     return render(request, "pharmacies/accueil.html")
 
 
@@ -50,6 +57,7 @@ def recherche_medicament(request):
         position_pharmacie = (float(stock.pharmacie.latitude), float(stock.pharmacie.longitude))
         distance_km = geodesic((lat_patient, lng_patient), position_pharmacie).km
         donnees.append({
+            "stock_id": stock.pk,
             "pharmacie": stock.pharmacie.nom,
             "quartier": stock.pharmacie.get_quartier_display(),
             "medicament": stock.medicament.nom_commercial,

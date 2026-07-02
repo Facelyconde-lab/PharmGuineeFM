@@ -109,6 +109,11 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+# Redirections liées à l'authentification (comptes patients)
+LOGIN_URL = 'patients:connexion'
+LOGIN_REDIRECT_URL = 'accueil'
+LOGOUT_REDIRECT_URL = 'accueil'
+
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
