@@ -1,0 +1,25 @@
+# Environnement virtuel Python (si tu en crées un plus tard)
+venv/
+env/
+.venv/
+
+# Fichiers Python compilés
+__pycache__/
+*.pyc
+
+# Base de données locale de développement (chacun a la sienne, ne pas partager)
+db.sqlite3
+
+# Fichiers uploadés par les utilisateurs (photos médicaments, ordonnances)
+media/
+
+# Fichiers statiques collectés (générés automatiquement, pas à versionner)
+staticfiles/
+
+# Secrets et configuration locale (clé secrète, mots de passe, clés API)
+.env
+
+# Fichiers spécifiques à l'éditeur / système
+.vscode/
+.DS_Store
+Thumbs.db
