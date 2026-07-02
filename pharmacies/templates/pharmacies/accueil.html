@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PharmaSira Guinée — Trouvez vos médicaments à Conakry</title>
+<style>
+    /* Mobile-first : on part de la version téléphone, on agrandit ensuite */
+    :root {
+        --vert: #1F6E43;
+        --vert-clair: #E3F1E9;
+        --bleu: #1F4E79;
+        --gris: #666;
+        --fond: #F7F9F8;
+    }
+    * { box-sizing: border-box; }
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        background: var(--fond);
+        color: #222;
+    }
+    header {
+        background: var(--vert);
+        color: white;
+        padding: 20px 16px;
+        text-align: center;
+    }
+    header h1 { margin: 0; font-size: 1.4rem; }
+    header p { margin: 4px 0 0; font-size: 0.9rem; opacity: 0.9; }
+
+    main { max-width: 640px; margin: 0 auto; padding: 16px; }
+
+    .recherche-form {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 8px;
+    }
+    .recherche-form input[type="text"] {
+        flex: 1;
+        padding: 12px;
+        font-size: 1rem;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+    }
+    .recherche-form button {
+        padding: 12px 18px;
+        font-size: 1rem;
+        background: var(--vert);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+    .recherche-form button:active { opacity: 0.85; }
+
+    #statut-localisation {
+        font-size: 0.85rem;
+        color: var(--gris);
+        margin-bottom: 16px;
+    }
+
+    .resultat {
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-left: 4px solid var(--vert);
+        border-radius: 6px;
+        padding: 12px 14px;
+        margin-bottom: 10px;
+    }
+    .resultat h3 { margin: 0 0 4px; font-size: 1.05rem; color: var(--bleu); }
+    .resultat .ligne { font-size: 0.9rem; margin: 2px 0; }
+    .resultat .prix { font-weight: bold; color: var(--vert); }
+    .resultat .distance {
+        display: inline-block;
+        background: var(--vert-clair);
+        color: var(--vert);
+        font-size: 0.8rem;
+        padding: 2px 8px;
+        border-radius: 12px;
+        margin-top: 6px;
+    }
+
+    #message { font-size: 0.9rem; color: var(--gris); margin-top: 10px; }
+
+    @media (min-width: 600px) {
+        header h1 { font-size: 1.8rem; }
+        .recherche-form input[type="text"] { font-size: 1.1rem; }
+    }
+</style>
+</head>
+<body>
+
+<header>
+    <h1>PharmaSira Guinée</h1>
+    <p>Trouvez un médicament disponible près de vous à Conakry</p>
+</header>
+
+<main>
+    <form class="recherche-form" id="form-recherche">
+        <input type="text" id="nom-medicament" placeholder="Nom du médicament (ex: Paracétamol)" required>
+        <button type="submit">Rechercher</button>
+    </form>
+
+    <div id="statut-localisation">Localisation en cours...</div>
+    <div id="resultats"></div>
+    <div id="message"></div>
+</main>
+
+<script>
+    // Coordonnées de repli : centre approximatif de Conakry, utilisées si le
+    // patient refuse le partage de sa position (le résultat reste utile,
+    // juste moins précis sur les distances).
+    let latitude = 9.535;
+    let longitude = -13.680;
+
+    const statutLocalisation = document.getElementById("statut-localisation");
+
+    if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                latitude = position.coords.latitude;
+                longitude = position.coords.longitude;
+                statutLocalisation.textContent = "Position détectée automatiquement.";
+            },
+            () => {
+                statutLocalisation.textContent =
+                    "Position non partagée : recherche basée sur le centre de Conakry.";
+            }
+        );
+    } else {
+        statutLocalisation.textContent =
+            "Géolocalisation non disponible sur cet appareil : recherche basée sur le centre de Conakry.";
+    }
+
+    const form = document.getElementById("form-recherche");
+    const resultatsDiv = document.getElementById("resultats");
+    const messageDiv = document.getElementById("message");
+
+    form.addEventListener("submit", async (evenement) => {
+        evenement.preventDefault();
+        const nom = document.getElementById("nom-medicament").value.trim();
+        if (!nom) return;
+
+        resultatsDiv.innerHTML = "";
+        messageDiv.textContent = "Recherche en cours...";
+
+        try {
+            const url = `/api/recherche/?nom=${encodeURIComponent(nom)}&lat=${latitude}&lng=${longitude}`;
+            const reponse = await fetch(url);
+            const donnees = await reponse.json();
+
+            if (!reponse.ok) {
+                messageDiv.textContent = donnees.erreur || "Une erreur est survenue.";
+                return;
+            }
+
+            if (donnees.length === 0) {
+                messageDiv.textContent = "Aucune pharmacie vérifiée n'a ce médicament en stock pour le moment.";
+                return;
+            }
+
+            messageDiv.textContent = "";
+            donnees.forEach((resultat) => {
+                const carte = document.createElement("div");
+                carte.className = "resultat";
+                carte.innerHTML = `
+                    <h3>${resultat.pharmacie} — ${resultat.quartier}</h3>
+                    <div class="ligne">${resultat.medicament}</div>
+                    <div class="ligne prix">${resultat.prix_gnf.toLocaleString("fr-FR")} GNF</div>
+                    <div class="ligne">Quantité disponible : ${resultat.quantite_disponible}</div>
+                    <div class="distance">${resultat.distance_km} km</div>
+                `;
+                resultatsDiv.appendChild(carte);
+            });
+        } catch (erreur) {
+            messageDiv.textContent = "Impossible de contacter le serveur. Réessaie dans un instant.";
+        }
+    });
+</script>
+
+</body>
+</html>

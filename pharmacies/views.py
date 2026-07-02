@@ -1,8 +1,14 @@
+from django.shortcuts import render
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from geopy.distance import geodesic
 
 from .models import Stock
+
+
+def accueil(request):
+    """Page publique de recherche : formulaire + résultats affichés en JavaScript (fetch)."""
+    return render(request, "pharmacies/accueil.html")
 
 
 @api_view(["GET"])

@@ -16,9 +16,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from pharmacies.views import accueil
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+
+    # Page publique de recherche (frontend)
+    path('', accueil, name='accueil'),
 
     # Toutes les routes de l'API commencent par /api/
     # Ex : /api/recherche/?nom=paracetamol&lat=...&lng=...
