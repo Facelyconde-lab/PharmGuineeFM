@@ -4,6 +4,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from geopy.distance import geodesic
 
+from medicaments.utils import retirer_accents
 from .models import Stock
 
 
@@ -45,8 +46,10 @@ def recherche_medicament(request):
     # 1. On ne retient que les stocks disponibles (quantité > 0) du médicament
     #    recherché, dans des pharmacies déjà vérifiées par l'ONPG/DNPM.
     #    select_related évite des requêtes SQL supplémentaires pour chaque résultat.
+    #    On compare sur cle_recherche (sans accents) plutôt que sur nom_commercial,
+    #    pour que "paracetamol" tapé sans accent trouve "Paracétamol".
     resultats = Stock.objects.filter(
-        medicament__nom_commercial__icontains=nom,
+        medicament__cle_recherche__icontains=retirer_accents(nom),
         quantite_disponible__gt=0,
         pharmacie__est_verifiee=True,
     ).select_related("pharmacie", "medicament")
