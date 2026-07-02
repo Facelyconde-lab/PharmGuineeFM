@@ -23,4 +23,9 @@ urlpatterns = [
     # Toutes les routes de l'API commencent par /api/
     # Ex : /api/recherche/?nom=paracetamol&lat=...&lng=...
     path('api/', include('pharmacies.urls')),
+    path('api/commandes/', include('commandes.urls')),
+
+    # Ajoute un lien "Log in" / "Log out" sur les pages de l'API navigable
+    # (rest_framework), pratique pour tester les endpoints protégés depuis le navigateur
+    path('api-auth/', include('rest_framework.urls')),
 ]
