@@ -3,4 +3,5 @@ from . import views
 
 urlpatterns = [
     path("", views.CommandeListCreateView.as_view(), name="commandes"),
+    path("<int:pk>/statut/", views.CommandeStatutUpdateView.as_view(), name="commande_statut"),
 ]

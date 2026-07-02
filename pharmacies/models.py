@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from medicaments.models import Medicament
 
@@ -33,6 +34,17 @@ class Pharmacie(models.Model):
     # Une pharmacie n'apparaît dans les résultats de recherche que si elle
     # a été validée manuellement (agrément vérifié auprès de l'ONPG/DNPM)
     est_verifiee = models.BooleanField("Vérifiée par l'ONPG/DNPM", default=False)
+
+    # Le compte utilisateur (Django) autorisé à gérer cette officine :
+    # mettre à jour les stocks, valider ou refuser les commandes.
+    # SET_NULL : si le compte est supprimé, la pharmacie reste, juste sans gestionnaire.
+    compte_gestionnaire = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="pharmacie_geree",
+    )
 
     date_creation = models.DateTimeField(auto_now_add=True)
 

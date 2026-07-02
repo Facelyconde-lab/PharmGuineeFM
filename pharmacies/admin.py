@@ -4,7 +4,7 @@ from .models import Pharmacie, Stock
 
 @admin.register(Pharmacie)
 class PharmacieAdmin(admin.ModelAdmin):
-    list_display = ("nom", "quartier", "telephone", "est_de_garde", "est_verifiee")
+    list_display = ("nom", "quartier", "telephone", "est_de_garde", "est_verifiee", "compte_gestionnaire")
     search_fields = ("nom", "numero_agrement_onpg")
     list_filter = ("quartier", "est_de_garde", "est_verifiee")
 

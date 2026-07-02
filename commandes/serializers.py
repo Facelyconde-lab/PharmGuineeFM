@@ -38,3 +38,11 @@ class CommandeSerializer(serializers.ModelSerializer):
                 f"Stock insuffisant : seulement {stock.quantite_disponible} disponible(s)."
             )
         return data
+
+
+class CommandeStatutSerializer(serializers.ModelSerializer):
+    """Utilisé uniquement par la pharmacie pour changer le statut d'une commande."""
+
+    class Meta:
+        model = Commande
+        fields = ["id", "statut"]
