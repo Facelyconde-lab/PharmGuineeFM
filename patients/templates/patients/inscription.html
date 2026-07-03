@@ -5,27 +5,117 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Inscription — PharmaSila Guinée</title>
 <style>
-    :root { --vert: #1F6E43; --bleu: #1F4E79; }
-    * { box-sizing: border-box; }
-    body { font-family: Arial, sans-serif; margin: 0; background: #F7F9F8; color: #222; }
-    header { background: var(--vert); color: white; padding: 20px 16px; text-align: center; }
-    header h1 { margin: 0; font-size: 1.4rem; }
-    main { max-width: 420px; margin: 30px auto; padding: 0 16px; }
-    form { background: white; border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; }
-    label { display: block; font-size: 0.9rem; margin: 10px 0 4px; }
-    input { width: 100%; padding: 10px; font-size: 1rem; border: 1px solid #ccc; border-radius: 6px; }
-    button {
-        width: 100%; margin-top: 16px; padding: 12px; font-size: 1rem;
-        background: var(--vert); color: white; border: none; border-radius: 6px; cursor: pointer;
+    :root {
+        --vert: #1F6E43;
+        --vert-fonce: #17532E;
+        --vert-clair: #E3F1E9;
+        --bleu: #1F4E79;
+        --gris: #6B7280;
+        --gris-clair: #E5E7EB;
+        --fond: #F4F7F6;
     }
-    .erreurs { color: #b00020; font-size: 0.85rem; margin-top: 6px; }
-    .lien { text-align: center; margin-top: 14px; font-size: 0.9rem; }
-    .lien a { color: var(--bleu); }
+    * { box-sizing: border-box; }
+    body {
+        font-family: -apple-system, "Segoe UI", Arial, sans-serif;
+        margin: 0;
+        background: var(--fond);
+        color: #1F2937;
+        -webkit-font-smoothing: antialiased;
+    }
+    header {
+        background: linear-gradient(135deg, var(--vert), var(--vert-fonce));
+        color: white;
+        padding: 22px 16px;
+        text-align: center;
+    }
+    .logo-ligne { display: flex; align-items: center; justify-content: center; gap: 8px; }
+    header h1 { margin: 0; font-size: 1.3rem; }
+    header a { color: white; }
+
+    main { max-width: 420px; margin: 0 auto; padding: 28px 16px 40px; }
+
+    .lien-retour {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.85rem;
+        color: var(--gris);
+        text-decoration: none;
+        margin-bottom: 16px;
+    }
+    .lien-retour:hover { color: var(--bleu); }
+
+    h2 { font-size: 1.3rem; margin: 0 0 18px; color: var(--bleu); }
+
+    form {
+        background: white;
+        border-radius: 12px;
+        padding: 22px 20px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    label { display: block; font-size: 0.85rem; font-weight: 600; margin: 14px 0 6px; color: #374151; }
+    label:first-of-type { margin-top: 0; }
+    input {
+        width: 100%;
+        padding: 11px 12px;
+        font-size: 1rem;
+        border: 1px solid var(--gris-clair);
+        border-radius: 8px;
+        background: var(--fond);
+        transition: border-color 0.15s ease, background 0.15s ease;
+    }
+    input:focus {
+        outline: none;
+        border-color: var(--vert);
+        background: white;
+    }
+    button {
+        width: 100%;
+        margin-top: 20px;
+        padding: 13px;
+        font-size: 1rem;
+        font-weight: 600;
+        background: var(--vert);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        min-height: 44px;
+        transition: background 0.15s ease;
+    }
+    button:hover { background: var(--vert-fonce); }
+    button:active { transform: translateY(1px); }
+
+    .erreurs {
+        color: #B00020;
+        background: #FCE8E6;
+        font-size: 0.85rem;
+        padding: 10px 12px;
+        border-radius: 8px;
+        margin-top: 12px;
+    }
+    .lien { text-align: center; margin-top: 18px; font-size: 0.9rem; color: var(--gris); }
+    .lien a { color: var(--bleu); font-weight: 600; text-decoration: none; }
+    .lien a:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
-<header><h1>PharmaSila Guinée</h1></header>
+<header>
+    <div class="logo-ligne">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10.5 20.5L20.5 10.5C22 9 22 6.5 20.5 5S17 3.5 15.5 5L5.5 15C4 16.5 4 19 5.5 20.5S9 22 10.5 20.5Z" stroke="white" stroke-width="1.6"/>
+            <line x1="9" y1="9.5" x2="14.5" y2="15" stroke="white" stroke-width="1.6"/>
+        </svg>
+        <h1>PharmaSila Guinée</h1>
+    </div>
+</header>
 <main>
+    <a class="lien-retour" href="{% url 'accueil' %}">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Retour à la recherche
+    </a>
     <h2>Créer un compte patient</h2>
     <form method="post">
         {% csrf_token %}

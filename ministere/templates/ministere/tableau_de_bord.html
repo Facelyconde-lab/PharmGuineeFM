@@ -22,53 +22,70 @@
         margin: 0;
         background: var(--fond);
         color: #1F2937;
+        -webkit-font-smoothing: antialiased;
     }
     header {
-        background: var(--bleu);
+        background: linear-gradient(135deg, var(--bleu), #123152);
         color: white;
         padding: 20px 16px;
         text-align: center;
     }
-    header h1 { margin: 0; font-size: 1.3rem; }
-    header p { margin: 4px 0 0; font-size: 0.85rem; opacity: 0.9; }
+    .logo-ligne { display: flex; align-items: center; justify-content: center; gap: 8px; }
+    header h1 { margin: 0; font-size: 1.2rem; }
+    header p { margin: 6px 0 0; font-size: 0.85rem; opacity: 0.9; }
     header a { color: white; }
 
-    main { max-width: 920px; margin: 0 auto; padding: 18px 16px 40px; }
+    main { max-width: 960px; margin: 0 auto; padding: 20px 16px 48px; }
 
     section { margin-bottom: 32px; }
     section h2 {
-        font-size: 1.1rem;
+        font-size: 1.05rem;
         color: var(--bleu);
         border-bottom: 2px solid var(--gris-clair);
-        padding-bottom: 6px;
+        padding-bottom: 8px;
         margin-bottom: 14px;
+    }
+    .sous-titre {
+        color: var(--gris);
+        font-size: 0.85rem;
+        margin: -10px 0 14px;
     }
 
     .cartes {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
         gap: 12px;
     }
     .carte {
         background: white;
-        border-radius: 8px;
+        border-radius: 10px;
         padding: 16px;
         box-shadow: 0 1px 3px rgba(0,0,0,0.06);
     }
-    .carte .chiffre { font-size: 1.7rem; font-weight: 700; color: var(--bleu); }
+    .carte .chiffre { font-size: 1.7rem; font-weight: 700; color: var(--bleu); line-height: 1.1; }
     .carte .chiffre.alerte { color: var(--rouge); }
-    .carte .libelle { font-size: 0.82rem; color: var(--gris); margin-top: 2px; }
+    .carte .libelle { font-size: 0.8rem; color: var(--gris); margin-top: 4px; }
 
-    table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; }
-    th, td { text-align: left; padding: 10px 12px; font-size: 0.88rem; border-bottom: 1px solid var(--gris-clair); }
-    th { background: #F0F2F1; color: var(--gris); font-weight: 600; font-size: 0.8rem; text-transform: uppercase; }
+    /* Enveloppe qui permet un défilement horizontal des tableaux larges
+       sur mobile, plutôt que de les écraser ou de casser la mise en page. */
+    .scroll-horizontal {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        border-radius: 10px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    table { width: 100%; border-collapse: collapse; background: white; min-width: 520px; }
+    th, td { text-align: left; padding: 11px 12px; font-size: 0.87rem; border-bottom: 1px solid var(--gris-clair); }
+    th { background: #F0F2F1; color: var(--gris); font-weight: 600; font-size: 0.78rem; text-transform: uppercase; }
+    tr:last-child td { border-bottom: none; }
 
     .badge {
         display: inline-block;
-        padding: 2px 9px;
+        padding: 3px 10px;
         border-radius: 10px;
         font-size: 0.75rem;
         font-weight: 600;
+        white-space: nowrap;
     }
     .badge.rouge { background: var(--rouge-clair); color: var(--rouge); }
     .badge.vert { background: var(--vert-clair); color: var(--vert); }
@@ -77,20 +94,26 @@
     .alerte-carte {
         background: var(--rouge-clair);
         border-left: 4px solid var(--rouge);
-        border-radius: 6px;
+        border-radius: 8px;
         padding: 12px 16px;
         margin-bottom: 8px;
     }
     .alerte-carte strong { color: var(--rouge); }
     .alerte-carte .detail { font-size: 0.85rem; color: #7A1620; margin-top: 2px; }
 
-    .vide { color: var(--gris); font-size: 0.9rem; font-style: italic; }
+    .vide { color: var(--gris); font-size: 0.9rem; font-style: italic; margin: 0; }
 </style>
 </head>
 <body>
 
 <header>
-    <h1>Tableau de bord — Ministère de la Santé</h1>
+    <div class="logo-ligne">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 3l7 3.5v5c0 4.6-3 8.9-7 10-4-1.1-7-5.4-7-10v-5L12 3Z" stroke="white" stroke-width="1.6" stroke-linejoin="round"/>
+            <path d="M9 12l2 2 4-4" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <h1>Tableau de bord — Ministère de la Santé</h1>
+    </div>
     <p>Suivi des pénuries et des tendances · <a href="{% url 'accueil' %}">Retour à la recherche publique</a></p>
 </header>
 
@@ -123,7 +146,7 @@
 
     <section>
         <h2>Médicaments critiques ({{ medicaments_critiques|length }})</h2>
-        <p class="libelle" style="color: var(--gris); font-size: 0.85rem; margin-top: -8px;">
+        <p class="sous-titre">
             Sous ordonnance et en rupture dans au moins 2 pharmacies vérifiées — nécessitent une attention prioritaire.
         </p>
         {% if medicaments_critiques %}
@@ -143,30 +166,32 @@
     <section>
         <h2>Pénuries par médicament</h2>
         {% if penuries_par_medicament %}
-            <table>
-                <thead>
-                    <tr><th>Médicament</th><th>DCI</th><th>Catégorie</th><th>Pharmacies en rupture</th><th>Statut</th></tr>
-                </thead>
-                <tbody>
-                {% for medicament in penuries_par_medicament %}
-                    <tr>
-                        <td>{{ medicament.nom_commercial }}</td>
-                        <td>{{ medicament.dci }}</td>
-                        <td>{{ medicament.categorie }}</td>
-                        <td>{{ medicament.nb_pharmacies_rupture }} / {{ medicament.nb_pharmacies_total }}</td>
-                        <td>
-                            {% if medicament.est_sur_ordonnance and medicament.nb_pharmacies_rupture >= 2 %}
-                                <span class="badge rouge">Critique</span>
-                            {% elif medicament.nb_pharmacies_rupture >= 2 %}
-                                <span class="badge bleu">À surveiller</span>
-                            {% else %}
-                                <span class="badge vert">Localisée</span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
+            <div class="scroll-horizontal">
+                <table>
+                    <thead>
+                        <tr><th>Médicament</th><th>DCI</th><th>Catégorie</th><th>Pharmacies en rupture</th><th>Statut</th></tr>
+                    </thead>
+                    <tbody>
+                    {% for medicament in penuries_par_medicament %}
+                        <tr>
+                            <td>{{ medicament.nom_commercial }}</td>
+                            <td>{{ medicament.dci }}</td>
+                            <td>{{ medicament.categorie }}</td>
+                            <td>{{ medicament.nb_pharmacies_rupture }} / {{ medicament.nb_pharmacies_total }}</td>
+                            <td>
+                                {% if medicament.est_sur_ordonnance and medicament.nb_pharmacies_rupture >= 2 %}
+                                    <span class="badge rouge">Critique</span>
+                                {% elif medicament.nb_pharmacies_rupture >= 2 %}
+                                    <span class="badge bleu">À surveiller</span>
+                                {% else %}
+                                    <span class="badge vert">Localisée</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         {% else %}
             <p class="vide">Aucune pénurie détectée pour le moment.</p>
         {% endif %}
@@ -174,25 +199,27 @@
 
     <section>
         <h2>Stocks faibles à surveiller (≤ {{ seuil_alerte_stock }} unités)</h2>
-        <p class="libelle" style="color: var(--gris); font-size: 0.85rem; margin-top: -8px;">
+        <p class="sous-titre">
             Alerte précoce, avant que ces médicaments ne tombent en rupture totale.
         </p>
         {% if stocks_faibles_par_medicament %}
-            <table>
-                <thead>
-                    <tr><th>Médicament</th><th>DCI</th><th>Catégorie</th><th>Pharmacies en stock faible</th></tr>
-                </thead>
-                <tbody>
-                {% for medicament in stocks_faibles_par_medicament %}
-                    <tr>
-                        <td>{{ medicament.nom_commercial }}</td>
-                        <td>{{ medicament.dci }}</td>
-                        <td>{{ medicament.categorie }}</td>
-                        <td>{{ medicament.nb_pharmacies_stock_faible }} / {{ medicament.nb_pharmacies_total }}</td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
+            <div class="scroll-horizontal">
+                <table>
+                    <thead>
+                        <tr><th>Médicament</th><th>DCI</th><th>Catégorie</th><th>Pharmacies en stock faible</th></tr>
+                    </thead>
+                    <tbody>
+                    {% for medicament in stocks_faibles_par_medicament %}
+                        <tr>
+                            <td>{{ medicament.nom_commercial }}</td>
+                            <td>{{ medicament.dci }}</td>
+                            <td>{{ medicament.categorie }}</td>
+                            <td>{{ medicament.nb_pharmacies_stock_faible }} / {{ medicament.nb_pharmacies_total }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         {% else %}
             <p class="vide">Aucun médicament en stock faible pour le moment.</p>
         {% endif %}
@@ -200,46 +227,50 @@
 
     <section>
         <h2>Tendances régionales (par quartier)</h2>
-        <table>
-            <thead>
-                <tr><th>Quartier</th><th>Pharmacies vérifiées</th><th>Lignes de stock</th><th>Ruptures</th><th>Taux de rupture</th></tr>
-            </thead>
-            <tbody>
-            {% for ligne in tendances_par_quartier %}
-                <tr>
-                    <td>{{ ligne.quartier }}</td>
-                    <td>{{ ligne.nb_pharmacies }}</td>
-                    <td>{{ ligne.nb_lignes_stock }}</td>
-                    <td>{{ ligne.nb_ruptures }}</td>
-                    <td>
-                        {% if ligne.taux_rupture > 20 %}
-                            <span class="badge rouge">{{ ligne.taux_rupture }}%</span>
-                        {% else %}
-                            <span class="badge vert">{{ ligne.taux_rupture }}%</span>
-                        {% endif %}
-                    </td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
+        <div class="scroll-horizontal">
+            <table>
+                <thead>
+                    <tr><th>Quartier</th><th>Pharmacies vérifiées</th><th>Lignes de stock</th><th>Ruptures</th><th>Taux de rupture</th></tr>
+                </thead>
+                <tbody>
+                {% for ligne in tendances_par_quartier %}
+                    <tr>
+                        <td>{{ ligne.quartier }}</td>
+                        <td>{{ ligne.nb_pharmacies }}</td>
+                        <td>{{ ligne.nb_lignes_stock }}</td>
+                        <td>{{ ligne.nb_ruptures }}</td>
+                        <td>
+                            {% if ligne.taux_rupture > 20 %}
+                                <span class="badge rouge">{{ ligne.taux_rupture }}%</span>
+                            {% else %}
+                                <span class="badge vert">{{ ligne.taux_rupture }}%</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </section>
 
     <section>
         <h2>Commandes par statut</h2>
         {% if commandes_par_statut %}
-            <table>
-                <thead>
-                    <tr><th>Statut</th><th>Total</th></tr>
-                </thead>
-                <tbody>
-                {% for ligne in commandes_par_statut %}
-                    <tr>
-                        <td>{{ ligne.statut }}</td>
-                        <td>{{ ligne.total }}</td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
+            <div class="scroll-horizontal">
+                <table>
+                    <thead>
+                        <tr><th>Statut</th><th>Total</th></tr>
+                    </thead>
+                    <tbody>
+                    {% for ligne in commandes_par_statut %}
+                        <tr>
+                            <td>{{ ligne.statut }}</td>
+                            <td>{{ ligne.total }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         {% else %}
             <p class="vide">Aucune commande enregistrée pour le moment.</p>
         {% endif %}
