@@ -1,12 +1,12 @@
-# PharmaSira Guinée
+# PharmaSila Guinée
 
-Plateforme numérique pour l'accès aux médicaments en Guinée. PharmaSira aide les patients à trouver rapidement un médicament disponible dans une pharmacie proche, à un prix affiché en toute transparence, sans avoir à démarcher plusieurs officines.
+Plateforme numérique pour l'accès aux médicaments en Guinée. PharmaSila aide les patients à trouver rapidement un médicament disponible dans une pharmacie proche, à un prix affiché en toute transparence, sans avoir à démarcher plusieurs officines.
 
 Site en ligne (démo pilote) : https://facelyconde.pythonanywhere.com
 
 ## Le problème
 
-En Guinée, trouver un médicament peut prendre des heures : les stocks réels ne sont pas connus à l'avance, les prix varient sans repère clair d'une pharmacie à l'autre, et certaines officines non accréditées vendent des médicaments contrefaits. PharmaSira centralise ces informations pour gagner du temps aux patients, apporter de la transparence sur les prix, et donner au ministère de la Santé une vue d'ensemble sur les pénuries.
+En Guinée, trouver un médicament peut prendre des heures : les stocks réels ne sont pas connus à l'avance, les prix varient sans repère clair d'une pharmacie à l'autre, et certaines officines non accréditées vendent des médicaments contrefaits. PharmaSila centralise ces informations pour gagner du temps aux patients, apporter de la transparence sur les prix, et donner au ministère de la Santé une vue d'ensemble sur les pénuries.
 
 ## Fonctionnalités
 

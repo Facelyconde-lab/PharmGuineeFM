@@ -66,7 +66,7 @@ INSTALLED_APPS = [
     # Django REST Framework : fournit les outils pour construire l'API
     'rest_framework',
 
-    # Applications propres au projet PharmGuinéeFM / PharmaSira
+    # Applications propres au projet PharmGuinéeFM / PharmaSila
     'patients',
     'pharmacies',
     'medicaments',
