@@ -63,11 +63,20 @@ def recherche_medicament(request):
     for stock in resultats:
         position_pharmacie = (float(stock.pharmacie.latitude), float(stock.pharmacie.longitude))
         distance_km = geodesic((lat_patient, lng_patient), position_pharmacie).km
+
+        # request.build_absolute_uri() transforme le chemin relatif du fichier
+        # (ex : /media/medicaments/xxx.png) en URL complète, utilisable tel
+        # quel dans une balise <img> peu importe la page où elle est affichée.
+        image_url = None
+        if stock.medicament.image:
+            image_url = request.build_absolute_uri(stock.medicament.image.url)
+
         donnees.append({
             "stock_id": stock.pk,
             "pharmacie": stock.pharmacie.nom,
             "quartier": stock.pharmacie.get_quartier_display(),
             "medicament": stock.medicament.nom_commercial,
+            "image_url": image_url,
             "prix_gnf": stock.prix_unitaire_gnf,
             "quantite_disponible": stock.quantite_disponible,
             "distance_km": round(distance_km, 2),

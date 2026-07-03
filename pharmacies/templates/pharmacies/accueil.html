@@ -133,6 +133,15 @@
         from { opacity: 0; transform: translateY(4px); }
         to { opacity: 1; transform: translateY(0); }
     }
+    .resultat .image-medicament {
+        display: block;
+        max-width: 100%;
+        max-height: 140px;
+        object-fit: contain;
+        margin: 0 auto 10px;
+        border-radius: 6px;
+        background: var(--fond);
+    }
     .resultat h3 { margin: 0 0 6px; font-size: 1.05rem; color: var(--bleu); }
     .resultat .ligne { font-size: 0.92rem; margin: 3px 0; color: #374151; }
     .resultat .prix { font-weight: 700; color: var(--vert); font-size: 1rem; }
@@ -335,7 +344,12 @@
             donnees.forEach((resultat) => {
                 const carte = document.createElement("div");
                 carte.className = "resultat";
+                // L'image est facultative : certains médicaments n'en ont pas encore.
+                const imageHtml = resultat.image_url
+                    ? `<img class="image-medicament" src="${resultat.image_url}" alt="${resultat.medicament}">`
+                    : "";
                 carte.innerHTML = `
+                    ${imageHtml}
                     <h3>${resultat.pharmacie} — ${resultat.quartier}</h3>
                     <div class="ligne">${resultat.medicament}</div>
                     <div class="ligne prix">${resultat.prix_gnf.toLocaleString("fr-FR")} GNF</div>
