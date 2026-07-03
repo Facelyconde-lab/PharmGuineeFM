@@ -32,6 +32,26 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1,localhost', cast=Csv())
 
+# --- Sécurité en production -------------------------------------------------
+# Ces réglages ne s'activent que quand DEBUG=False (donc jamais en local avec
+# runserver, où il n'y a pas de HTTPS). C'est important : la plateforme
+# traite des données médicales (ordonnances, historique de commandes), donc
+# on force le chiffrement des échanges dès que le site est réellement en ligne.
+#
+# SECURE_PROXY_SSL_HEADER est nécessaire sur PythonAnywhere : leur serveur
+# gère le certificat HTTPS et relaie ensuite la requête à Django avec un
+# en-tête "X-Forwarded-Proto". Sans ce réglage, Django croirait que toutes
+# les requêtes arrivent en HTTP (même si le visiteur est bien en HTTPS) et
+# SECURE_SSL_REDIRECT créerait une boucle de redirection infinie.
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = not DEBUG
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+# HSTS : dit au navigateur de refuser de revenir en HTTP pendant 1h après
+# une première visite en HTTPS. Valeur volontairement modeste pour l'instant
+# (à augmenter plus tard une fois le HTTPS bien confirmé stable).
+SECURE_HSTS_SECONDS = 3600 if not DEBUG else 0
+
 
 # Application definition
 
