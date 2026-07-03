@@ -16,6 +16,7 @@
         --fond: #F4F7F6;
     }
     * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
     body {
         font-family: -apple-system, "Segoe UI", Arial, sans-serif;
         margin: 0;
@@ -37,7 +38,19 @@
         gap: 8px;
     }
     header h1 { margin: 0; font-size: 1.5rem; letter-spacing: 0.2px; }
-    header p { margin: 6px 0 0; font-size: 0.9rem; opacity: 0.92; }
+    header p { margin: 8px 0 0; font-size: 0.9rem; opacity: 0.92; }
+    .badge-pilote {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        margin-top: 10px;
+        padding: 4px 12px;
+        background: rgba(255,255,255,0.16);
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+    }
 
     .barre-compte {
         display: flex;
@@ -53,7 +66,19 @@
     }
     .barre-compte a { color: white; font-weight: 600; text-decoration: underline; }
 
-    main { max-width: 640px; margin: 0 auto; padding: 18px 16px 40px; }
+    main { max-width: 640px; margin: 0 auto; padding: 0 16px 40px; }
+
+    /* La zone de recherche reste visible en haut de l'écran même quand on
+       fait défiler une longue liste de résultats : plus pratique pour
+       relancer une recherche sans devoir remonter tout en haut. */
+    .zone-recherche {
+        position: sticky;
+        top: 0;
+        z-index: 5;
+        background: var(--fond);
+        padding-top: 16px;
+        padding-bottom: 4px;
+    }
 
     .recherche-form {
         display: flex;
@@ -64,9 +89,23 @@
         border-radius: 10px;
         box-shadow: 0 1px 3px rgba(0,0,0,0.08);
     }
-    .recherche-form input[type="text"] {
+    .champ-recherche {
+        position: relative;
         flex: 1;
-        padding: 12px 14px;
+        display: flex;
+        align-items: center;
+    }
+    .champ-recherche svg {
+        position: absolute;
+        left: 12px;
+        width: 18px;
+        height: 18px;
+        color: var(--gris);
+        pointer-events: none;
+    }
+    .recherche-form input[type="text"] {
+        width: 100%;
+        padding: 12px 14px 12px 38px;
         font-size: 1rem;
         border: none;
         border-radius: 8px;
@@ -74,6 +113,9 @@
         background: transparent;
     }
     .recherche-form button {
+        display: flex;
+        align-items: center;
+        gap: 6px;
         padding: 12px 20px;
         font-size: 1rem;
         font-weight: 600;
@@ -82,45 +124,59 @@
         border: none;
         border-radius: 8px;
         cursor: pointer;
-        transition: background 0.15s ease;
+        transition: background 0.15s ease, opacity 0.15s ease;
+        white-space: nowrap;
     }
     .recherche-form button:hover { background: var(--vert-fonce); }
     .recherche-form button:active { transform: translateY(1px); }
+    .recherche-form button:disabled { opacity: 0.7; cursor: default; }
 
     #statut-localisation {
         font-size: 0.82rem;
         color: var(--gris);
-        margin: 4px 4px 18px;
+        margin: 4px 4px 14px;
     }
 
     .etat-vide {
         text-align: center;
         color: var(--gris);
         font-size: 0.9rem;
-        padding: 40px 20px;
+        padding: 36px 20px;
         border: 1.5px dashed var(--gris-clair);
         border-radius: 10px;
         background: white;
     }
+    .etat-vide svg { color: var(--gris-clair); margin-bottom: 10px; }
 
-    .chargement {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        color: var(--gris);
-        font-size: 0.9rem;
-        padding: 16px 4px;
+    /* Cartes "squelette" affichées pendant le chargement, à la place d'un
+       simple spinner : donnent tout de suite une idée de la forme du
+       résultat à venir, effet plus soigné qu'une roue qui tourne seule. */
+    .squelette {
+        background: white;
+        border-radius: 10px;
+        padding: 14px 16px;
+        margin-bottom: 12px;
+        border-left: 4px solid var(--gris-clair);
     }
-    .spinner {
-        width: 18px; height: 18px;
-        border: 3px solid var(--vert-clair);
-        border-top-color: var(--vert);
-        border-radius: 50%;
-        animation: tourner 0.7s linear infinite;
+    .squelette .barre {
+        height: 12px;
+        border-radius: 6px;
+        margin-bottom: 8px;
+        background: linear-gradient(90deg, var(--gris-clair) 25%, #F0F2F1 37%, var(--gris-clair) 63%);
+        background-size: 400% 100%;
+        animation: scintillement 1.4s ease infinite;
     }
-    @keyframes tourner { to { transform: rotate(360deg); } }
+    .squelette .barre.large { width: 70%; }
+    .squelette .barre.moyenne { width: 45%; }
+    .squelette .barre.courte { width: 30%; margin-bottom: 0; }
+    @keyframes scintillement {
+        0% { background-position: 100% 50%; }
+        100% { background-position: 0 50%; }
+    }
 
     .resultat {
+        display: flex;
+        flex-direction: column;
         background: white;
         border-radius: 10px;
         padding: 14px 16px;
@@ -142,7 +198,27 @@
         border-radius: 6px;
         background: var(--fond);
     }
+    .resultat .entete-resultat {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
     .resultat h3 { margin: 0 0 6px; font-size: 1.05rem; color: var(--bleu); }
+    .badge-verifiee {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--vert-fonce);
+        background: var(--vert-clair);
+        padding: 2px 8px;
+        border-radius: 10px;
+        white-space: nowrap;
+        margin-bottom: 6px;
+    }
     .resultat .ligne { font-size: 0.92rem; margin: 3px 0; color: #374151; }
     .resultat .prix { font-weight: 700; color: var(--vert); font-size: 1rem; }
     .resultat .distance {
@@ -161,7 +237,7 @@
         display: block;
         width: 100%;
         margin-top: 12px;
-        padding: 11px;
+        padding: 12px;
         font-size: 0.95rem;
         font-weight: 600;
         background: var(--bleu);
@@ -170,6 +246,8 @@
         border-radius: 8px;
         cursor: pointer;
         transition: opacity 0.15s ease;
+        /* 44px minimum recommandé pour une cible tactile confortable */
+        min-height: 44px;
     }
     .resultat .bouton-reserver:hover { opacity: 0.9; }
     .resultat .bouton-reserver:disabled { background: #A3A3A3; cursor: default; }
@@ -183,9 +261,21 @@
         padding: 24px 16px 32px;
     }
 
-    @media (min-width: 600px) {
+    /* À partir d'un écran de tablette, la photo se place à côté du texte
+       plutôt qu'au-dessus : meilleure utilisation de l'espace horizontal. */
+    @media (min-width: 480px) {
         header h1 { font-size: 1.9rem; }
         .recherche-form input[type="text"] { font-size: 1.1rem; }
+
+        .resultat { flex-direction: row; gap: 16px; align-items: flex-start; }
+        .resultat .image-medicament {
+            width: 96px;
+            height: 96px;
+            max-height: none;
+            margin: 0;
+            flex-shrink: 0;
+        }
+        .resultat .contenu { flex: 1; min-width: 0; }
     }
 </style>
 </head>
@@ -200,6 +290,7 @@
         <h1>PharmaSila Guinée</h1>
     </div>
     <p>Trouvez un médicament disponible près de vous à Conakry</p>
+    <span class="badge-pilote">🇬🇳 Projet pilote — Conakry</span>
 </header>
 
 <div class="barre-compte">
@@ -223,15 +314,27 @@
 </div>
 
 <main>
-    <form class="recherche-form" id="form-recherche">
-        <input type="text" id="nom-medicament" placeholder="Nom du médicament (ex : Paracétamol)" required autofocus>
-        <button type="submit">Rechercher</button>
-    </form>
+    <div class="zone-recherche">
+        <form class="recherche-form" id="form-recherche">
+            <div class="champ-recherche">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/>
+                    <line x1="16.5" y1="16.5" x2="21" y2="21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <input type="text" id="nom-medicament" placeholder="Nom du médicament (ex : Paracétamol)" required autofocus>
+            </div>
+            <button type="submit" id="bouton-recherche">Rechercher</button>
+        </form>
 
-    <div id="statut-localisation">Localisation en cours...</div>
+        <div id="statut-localisation">Localisation en cours...</div>
+    </div>
 
     <div id="etat-initial" class="etat-vide">
-        Recherchez un médicament ci-dessus pour voir les pharmacies qui l'ont en stock près de vous.
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.6"/>
+            <line x1="16.5" y1="16.5" x2="21" y2="21" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+        <div>Recherchez un médicament ci-dessus pour voir les pharmacies qui l'ont en stock près de vous.</div>
     </div>
 
     <div id="resultats"></div>
@@ -306,24 +409,27 @@
     }
 
     const form = document.getElementById("form-recherche");
+    const boutonRecherche = document.getElementById("bouton-recherche");
     const resultatsDiv = document.getElementById("resultats");
     const messageDiv = document.getElementById("message");
     const etatInitial = document.getElementById("etat-initial");
+
+    // Trois cartes "squelette" de largeurs différentes, pour un effet de
+    // chargement plus vivant qu'une seule roue qui tourne.
+    const squelette = `
+        <div class="squelette"><div class="barre large"></div><div class="barre moyenne"></div><div class="barre courte"></div></div>
+        <div class="squelette"><div class="barre large"></div><div class="barre moyenne"></div><div class="barre courte"></div></div>
+    `;
 
     form.addEventListener("submit", async (evenement) => {
         evenement.preventDefault();
         const nom = document.getElementById("nom-medicament").value.trim();
         if (!nom) return;
 
+        boutonRecherche.disabled = true;
         etatInitial.style.display = "none";
-        resultatsDiv.innerHTML = "";
+        resultatsDiv.innerHTML = squelette;
         messageDiv.textContent = "";
-        resultatsDiv.innerHTML = `
-            <div class="chargement">
-                <div class="spinner"></div>
-                <span>Recherche en cours...</span>
-            </div>
-        `;
 
         try {
             const url = `/api/recherche/?nom=${encodeURIComponent(nom)}&lat=${latitude}&lng=${longitude}`;
@@ -350,11 +456,16 @@
                     : "";
                 carte.innerHTML = `
                     ${imageHtml}
-                    <h3>${resultat.pharmacie} — ${resultat.quartier}</h3>
-                    <div class="ligne">${resultat.medicament}</div>
-                    <div class="ligne prix">${resultat.prix_gnf.toLocaleString("fr-FR")} GNF</div>
-                    <div class="ligne">Quantité disponible : ${resultat.quantite_disponible}</div>
-                    <div class="distance">📍 ${resultat.distance_km} km</div>
+                    <div class="contenu">
+                        <div class="entete-resultat">
+                            <h3>${resultat.pharmacie} — ${resultat.quartier}</h3>
+                        </div>
+                        <div class="badge-verifiee">✓ Officine vérifiée ONPG/DNPM</div>
+                        <div class="ligne">${resultat.medicament}</div>
+                        <div class="ligne prix">${resultat.prix_gnf.toLocaleString("fr-FR")} GNF</div>
+                        <div class="ligne">Quantité disponible : ${resultat.quantite_disponible}</div>
+                        <div class="distance">📍 ${resultat.distance_km} km</div>
+                    </div>
                 `;
 
                 const bouton = document.createElement("button");
@@ -368,13 +479,15 @@
                         window.location.href = "/patients/connexion/";
                     });
                 }
-                carte.appendChild(bouton);
+                carte.querySelector(".contenu").appendChild(bouton);
 
                 resultatsDiv.appendChild(carte);
             });
         } catch (erreur) {
             resultatsDiv.innerHTML = "";
             messageDiv.textContent = "Impossible de contacter le serveur. Réessaie dans un instant.";
+        } finally {
+            boutonRecherche.disabled = false;
         }
     });
 </script>
