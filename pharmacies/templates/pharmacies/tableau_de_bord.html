@@ -164,7 +164,10 @@
                         <td>{{ commande.patient.username }}</td>
                         <td>{{ commande.stock.medicament.nom_commercial }}</td>
                         <td>{{ commande.quantite }}</td>
-                        <td>{{ commande.get_statut_display }}</td>
+                        <td>
+                            {{ commande.get_statut_display }}
+                            {% if commande.numero_scelle %}<br><small>Scellé : {{ commande.numero_scelle }}</small>{% endif %}
+                        </td>
                         <td>{{ commande.get_mode_livraison_display }}</td>
                         <td class="ligne-actions">
                             {% if commande.statut == "en_attente" %}
@@ -180,7 +183,30 @@
                                     <input type="hidden" name="commande_id" value="{{ commande.pk }}">
                                     <button class="bouton rouge" type="submit">Refuser</button>
                                 </form>
-                            {% else %}
+                            {% elif commande.statut == "validee" %}
+                                <form method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="marquer_preparee">
+                                    <input type="hidden" name="commande_id" value="{{ commande.pk }}">
+                                    <button class="bouton bleu" type="submit">Marquer préparée</button>
+                                </form>
+                            {% elif commande.statut == "preparee" %}
+                                {% if commande.mode_livraison == "livraison" %}
+                                    <form method="post">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="marquer_en_livraison">
+                                        <input type="hidden" name="commande_id" value="{{ commande.pk }}">
+                                        <button class="bouton bleu" type="submit">Marquer en livraison</button>
+                                    </form>
+                                {% else %}
+                                    <form method="post">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="marquer_livree">
+                                        <input type="hidden" name="commande_id" value="{{ commande.pk }}">
+                                        <button class="bouton bleu" type="submit">Remise au patient</button>
+                                    </form>
+                                {% endif %}
+                            {% elif commande.statut == "en_livraison" %}
                                 <form method="post">
                                     {% csrf_token %}
                                     <input type="hidden" name="action" value="marquer_livree">

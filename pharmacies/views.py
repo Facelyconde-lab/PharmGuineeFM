@@ -1,3 +1,5 @@
+import secrets
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
@@ -147,6 +149,33 @@ def tableau_de_bord(request):
             commande.statut = "annulee"
             commande.save(update_fields=["statut"])
             messages.success(request, f"Commande #{commande.pk} refusée, stock restitué.")
+
+        elif action == "marquer_preparee":
+            # Étape intermédiaire entre "validée" et "livrée" : la commande est
+            # physiquement préparée et scellée. On génère un numéro de scellé
+            # unique, qui sert de preuve d'intégrité à la remise (le patient
+            # ou le livreur peut vérifier que le scellé n'a pas été ouvert).
+            commande = get_object_or_404(
+                Commande, pk=request.POST.get("commande_id"), stock__pharmacie=pharmacie
+            )
+            commande.statut = "preparee"
+            commande.numero_scelle = f"SCL-{secrets.token_hex(4).upper()}"
+            commande.save(update_fields=["statut", "numero_scelle"])
+            messages.success(
+                request,
+                f"Commande #{commande.pk} préparée et scellée (n° {commande.numero_scelle}).",
+            )
+
+        elif action == "marquer_en_livraison":
+            # Uniquement pertinent pour les commandes en mode "livraison à
+            # domicile" ; pour un retrait en pharmacie, on passe directement
+            # de "préparée" à "livrée" via l'action ci-dessous.
+            commande = get_object_or_404(
+                Commande, pk=request.POST.get("commande_id"), stock__pharmacie=pharmacie
+            )
+            commande.statut = "en_livraison"
+            commande.save(update_fields=["statut"])
+            messages.success(request, f"Commande #{commande.pk} en cours de livraison.")
 
         elif action == "marquer_livree":
             commande = get_object_or_404(
