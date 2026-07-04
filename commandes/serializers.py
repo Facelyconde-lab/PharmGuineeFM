@@ -17,6 +17,7 @@ class CommandeSerializer(serializers.ModelSerializer):
             "medicament",
             "quantite",
             "mode_livraison",
+            "adresse_livraison",
             "statut",
             "date_creation",
         ]
@@ -36,6 +37,13 @@ class CommandeSerializer(serializers.ModelSerializer):
         if quantite > stock.quantite_disponible:
             raise serializers.ValidationError(
                 f"Stock insuffisant : seulement {stock.quantite_disponible} disponible(s)."
+            )
+
+        # L'adresse n'a de sens que pour une livraison à domicile ; sans elle,
+        # la pharmacie/le livreur n'a aucun moyen de savoir où se rendre.
+        if data.get("mode_livraison") == "livraison" and not data.get("adresse_livraison", "").strip():
+            raise serializers.ValidationError(
+                "Une adresse de livraison est obligatoire pour une livraison à domicile."
             )
         return data
 

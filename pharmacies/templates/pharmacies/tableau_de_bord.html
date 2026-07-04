@@ -239,7 +239,10 @@
                                 <span class="badge bleu">{{ commande.get_statut_display }}</span>
                                 {% if commande.numero_scelle %}<span class="scelle">Scellé : {{ commande.numero_scelle }}</span>{% endif %}
                             </td>
-                            <td>{{ commande.get_mode_livraison_display }}</td>
+                            <td>
+                                {{ commande.get_mode_livraison_display }}
+                                {% if commande.adresse_livraison %}<span class="scelle">{{ commande.adresse_livraison }}</span>{% endif %}
+                            </td>
                             <td class="ligne-actions">
                                 {% if commande.statut == "en_attente" %}
                                     <form method="post">

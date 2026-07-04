@@ -42,6 +42,16 @@ class Commande(models.Model):
     statut = models.CharField(max_length=20, choices=STATUTS, default="en_attente")
     mode_livraison = models.CharField(max_length=20, choices=MODES_LIVRAISON)
 
+    # Utile uniquement si mode_livraison = "livraison" (validé côté serializer) :
+    # quartier + repère, pour que le livreur retrouve le patient. Laissé libre
+    # (pas de champ structuré rue/numéro) car l'adressage formel n'existe pas
+    # partout à Conakry — un repère textuel est plus fiable en pratique.
+    adresse_livraison = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Quartier + repère (ex: Dixinn, près de la pharmacie Bonfi), requis pour une livraison à domicile.",
+    )
+
     date_creation = models.DateTimeField(auto_now_add=True)
     date_mise_a_jour = models.DateTimeField(auto_now=True)
 

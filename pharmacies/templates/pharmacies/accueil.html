@@ -260,6 +260,16 @@
         color: var(--vert-fonce);
     }
     .choix-livraison input { accent-color: var(--vert); }
+    .champ-adresse {
+        width: 100%;
+        margin-top: 8px;
+        padding: 10px 12px;
+        font-size: 0.9rem;
+        border: 1px solid var(--gris-clair);
+        border-radius: 8px;
+        background: var(--fond);
+    }
+    .champ-adresse:focus { outline: none; border-color: var(--vert); background: white; }
 
     .resultat .bouton-reserver {
         display: block;
@@ -387,6 +397,13 @@
         // mélangerait les choix de plusieurs résultats affichés en même temps.
         const choixCoche = carte.querySelector(`input[name="livraison-${stockId}"]:checked`);
         const modeLivraison = choixCoche ? choixCoche.value : "retrait";
+        const champAdresse = carte.querySelector(".champ-adresse");
+        const adresseLivraison = champAdresse ? champAdresse.value.trim() : "";
+
+        if (modeLivraison === "livraison" && !adresseLivraison) {
+            alert("Merci d'indiquer une adresse (quartier + repère) pour la livraison.");
+            return;
+        }
 
         bouton.disabled = true;
         bouton.textContent = "Réservation en cours...";
@@ -402,6 +419,7 @@
                     stock: stockId,
                     quantite: 1,
                     mode_livraison: modeLivraison,
+                    adresse_livraison: adresseLivraison,
                 }),
             });
             const donnees = await reponse.json();
@@ -510,6 +528,7 @@
                                 🚚 Livraison
                             </label>
                         </div>
+                        <input type="text" class="champ-adresse" placeholder="Quartier + repère pour la livraison" style="display:none;">
                         ` : ""}
                     </div>
                 `;
@@ -519,6 +538,15 @@
                 if (estConnecte) {
                     bouton.textContent = "Réserver";
                     bouton.addEventListener("click", () => reserver(resultat.stock_id, bouton, carte));
+
+                    // Le champ d'adresse n'apparaît que si "Livraison" est choisi :
+                    // inutile de le montrer pour un retrait en pharmacie.
+                    const champAdresse = carte.querySelector(".champ-adresse");
+                    carte.querySelectorAll(`input[name="livraison-${resultat.stock_id}"]`).forEach((radio) => {
+                        radio.addEventListener("change", () => {
+                            champAdresse.style.display = radio.value === "livraison" ? "block" : "none";
+                        });
+                    });
                 } else {
                     bouton.textContent = "Se connecter pour réserver";
                     bouton.addEventListener("click", () => {
