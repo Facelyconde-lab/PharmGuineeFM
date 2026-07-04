@@ -1,7 +1,9 @@
 from django.contrib.auth import login, logout
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from django.shortcuts import render, redirect
 
+from commandes.models import Commande
 from .forms import InscriptionForm
 
 
@@ -35,3 +37,18 @@ def connexion(request):
 def deconnexion(request):
     logout(request)
     return redirect("accueil")
+
+
+@login_required
+def mes_commandes(request):
+    """
+    Historique des commandes du patient connecté : lui permet de suivre où
+    en est chaque réservation (validée, préparée, en livraison, livrée...)
+    sans dépendre uniquement des emails de notification.
+    """
+    commandes = (
+        Commande.objects.filter(patient=request.user)
+        .select_related("stock__pharmacie", "stock__medicament")
+        .order_by("-date_creation")
+    )
+    return render(request, "patients/mes_commandes.html", {"commandes": commandes})

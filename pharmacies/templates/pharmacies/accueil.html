@@ -233,6 +233,34 @@
         border-radius: 12px;
         margin-top: 8px;
     }
+    .choix-livraison {
+        display: flex;
+        gap: 6px;
+        margin-top: 10px;
+    }
+    .choix-livraison label {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        padding: 8px 6px;
+        border: 1px solid var(--gris-clair);
+        border-radius: 8px;
+        cursor: pointer;
+        color: var(--gris);
+        transition: all 0.15s ease;
+        min-height: 40px;
+    }
+    .choix-livraison label:has(input:checked) {
+        background: var(--vert-clair);
+        border-color: var(--vert);
+        color: var(--vert-fonce);
+    }
+    .choix-livraison input { accent-color: var(--vert); }
+
     .resultat .bouton-reserver {
         display: block;
         width: 100%;
@@ -353,7 +381,13 @@
         return valeur ? decodeURIComponent(valeur.split("=")[1]) : null;
     }
 
-    async function reserver(stockId, bouton) {
+    async function reserver(stockId, bouton, carte) {
+        // Le mode de livraison choisi (retrait ou livraison) est lu sur la
+        // carte au moment du clic, pour ne pas dépendre d'un état global qui
+        // mélangerait les choix de plusieurs résultats affichés en même temps.
+        const choixCoche = carte.querySelector(`input[name="livraison-${stockId}"]:checked`);
+        const modeLivraison = choixCoche ? choixCoche.value : "retrait";
+
         bouton.disabled = true;
         bouton.textContent = "Réservation en cours...";
         try {
@@ -367,7 +401,7 @@
                 body: JSON.stringify({
                     stock: stockId,
                     quantite: 1,
-                    mode_livraison: "retrait",
+                    mode_livraison: modeLivraison,
                 }),
             });
             const donnees = await reponse.json();
@@ -465,6 +499,18 @@
                         <div class="ligne prix">${resultat.prix_gnf.toLocaleString("fr-FR")} GNF</div>
                         <div class="ligne">Quantité disponible : ${resultat.quantite_disponible}</div>
                         <div class="distance">📍 ${resultat.distance_km} km</div>
+                        ${estConnecte ? `
+                        <div class="choix-livraison">
+                            <label>
+                                <input type="radio" name="livraison-${resultat.stock_id}" value="retrait" checked>
+                                🏥 Retrait
+                            </label>
+                            <label>
+                                <input type="radio" name="livraison-${resultat.stock_id}" value="livraison">
+                                🚚 Livraison
+                            </label>
+                        </div>
+                        ` : ""}
                     </div>
                 `;
 
@@ -472,7 +518,7 @@
                 bouton.className = "bouton-reserver";
                 if (estConnecte) {
                     bouton.textContent = "Réserver";
-                    bouton.addEventListener("click", () => reserver(resultat.stock_id, bouton));
+                    bouton.addEventListener("click", () => reserver(resultat.stock_id, bouton, carte));
                 } else {
                     bouton.textContent = "Se connecter pour réserver";
                     bouton.addEventListener("click", () => {
