@@ -1,5 +1,59 @@
+import requests
 from django.conf import settings
-from django.core.mail import send_mail
+
+
+def _envoyer_email(destinataire, sujet, corps):
+    """
+    Envoie un email au patient.
+
+    Pourquoi deux chemins possibles : les comptes gratuits PythonAnywhere
+    bloquent le SMTP de façon intermittente (leur pare-feu code en dur les
+    IP des serveurs Gmail, qui changent parfois côté Google — voir
+    help.pythonanywhere.com/pages/SMTPForFreeUsers). L'API Brevo fonctionne
+    elle en HTTPS classique, toujours autorisé même sur un compte gratuit.
+
+    - Si BREVO_API_KEY est renseignée (production) : on passe par l'API
+      Brevo, une simple requête HTTPS.
+    - Sinon (développement local) : on utilise le backend email standard de
+      Django, qui affiche juste le message dans le terminal (backend
+      "console"), pratique pour tester sans compte Brevo.
+    """
+    if settings.BREVO_API_KEY:
+        try:
+            reponse = requests.post(
+                "https://api.brevo.com/v3/smtp/email",
+                headers={
+                    "api-key": settings.BREVO_API_KEY,
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                },
+                json={
+                    "sender": {
+                        "name": "PharmaSila Guinée",
+                        "email": settings.BREVO_SENDER_EMAIL,
+                    },
+                    "to": [{"email": destinataire}],
+                    "subject": sujet,
+                    "textContent": corps,
+                },
+                timeout=10,
+            )
+            if reponse.status_code >= 300:
+                # On ne bloque jamais le traitement de la commande pour un
+                # souci d'email : on se contente d'un message dans les logs
+                # PythonAnywhere (onglet Web > Log files > error log).
+                print(f"[Brevo] Échec envoi à {destinataire} : {reponse.status_code} {reponse.text}")
+        except requests.RequestException as erreur:
+            print(f"[Brevo] Exception lors de l'envoi à {destinataire} : {erreur}")
+    else:
+        from django.core.mail import send_mail
+        send_mail(
+            subject=sujet,
+            message=corps,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[destinataire],
+            fail_silently=True,
+        )
 
 
 def envoyer_notification_statut(commande):
@@ -56,10 +110,8 @@ def envoyer_notification_statut(commande):
         # la réservation) : on ne fait rien.
         return
 
-    send_mail(
-        subject=f"PharmaSila — Commande #{commande.pk} : {commande.get_statut_display()}",
-        message=corps,
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[patient.email],
-        fail_silently=True,
+    _envoyer_email(
+        destinataire=patient.email,
+        sujet=f"PharmaSila — Commande #{commande.pk} : {commande.get_statut_display()}",
+        corps=corps,
     )

@@ -76,6 +76,13 @@ DEFAULT_FROM_EMAIL = config(
     'DEFAULT_FROM_EMAIL', default='PharmaSila Guinée <no-reply@pharmasila.gn>'
 )
 
+# Envoi via l'API HTTPS de Brevo (voir commandes/notifications.py) : contourne
+# le blocage SMTP intermittent des comptes gratuits PythonAnywhere. Si
+# BREVO_API_KEY est vide (ex: en local), le code retombe sur EMAIL_BACKEND
+# ci-dessus (backend "console" en dev).
+BREVO_API_KEY = config('BREVO_API_KEY', default='')
+BREVO_SENDER_EMAIL = config('BREVO_SENDER_EMAIL', default='')
+
 
 # Application definition
 
