@@ -1,12 +1,14 @@
 from django.contrib.auth import login, logout
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.contrib.auth.forms import AuthenticationForm
 from django.shortcuts import render, redirect
+
+from .forms import InscriptionForm
 
 
 def inscription(request):
-    """Création d'un compte patient (nom d'utilisateur + mot de passe)."""
+    """Création d'un compte patient (nom d'utilisateur + email + mot de passe)."""
     if request.method == "POST":
-        formulaire = UserCreationForm(request.POST)
+        formulaire = InscriptionForm(request.POST)
         if formulaire.is_valid():
             utilisateur = formulaire.save()
             # On connecte automatiquement le patient juste après son inscription,
@@ -14,7 +16,7 @@ def inscription(request):
             login(request, utilisateur)
             return redirect("accueil")
     else:
-        formulaire = UserCreationForm()
+        formulaire = InscriptionForm()
     return render(request, "patients/inscription.html", {"formulaire": formulaire})
 
 

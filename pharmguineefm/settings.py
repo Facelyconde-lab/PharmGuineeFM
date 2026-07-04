@@ -52,6 +52,30 @@ CSRF_COOKIE_SECURE = not DEBUG
 # (à augmenter plus tard une fois le HTTPS bien confirmé stable).
 SECURE_HSTS_SECONDS = 3600 if not DEBUG else 0
 
+# --- Envoi d'emails (notifications de suivi de commande) -------------------
+# But : prévenir automatiquement le patient par email à chaque changement de
+# statut de sa commande (validée, préparée, en livraison, livrée, refusée).
+#
+# En local (DEBUG=True), aucun email n'est réellement envoyé : Django les
+# affiche simplement dans le terminal (backend "console"), ce qui permet de
+# tester sans avoir de vrais identifiants email. En production, on utilise
+# le SMTP de Gmail avec un compte dédié et un "mot de passe d'application"
+# (jamais le mot de passe Gmail normal, voir .env.example pour les détails).
+EMAIL_BACKEND = config(
+    'EMAIL_BACKEND',
+    default='django.core.mail.backends.console.EmailBackend'
+    if DEBUG
+    else 'django.core.mail.backends.smtp.EmailBackend',
+)
+EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
+EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+DEFAULT_FROM_EMAIL = config(
+    'DEFAULT_FROM_EMAIL', default='PharmaSila Guinée <no-reply@pharmasila.gn>'
+)
+
 
 # Application definition
 

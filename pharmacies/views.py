@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from geopy.distance import geodesic
 
 from commandes.models import Commande
+from commandes.notifications import envoyer_notification_statut
 from medicaments.models import Medicament
 from medicaments.utils import retirer_accents
 from .models import Pharmacie, Stock
@@ -137,6 +138,7 @@ def tableau_de_bord(request):
             )
             commande.statut = "validee"
             commande.save(update_fields=["statut"])
+            envoyer_notification_statut(commande)
             messages.success(request, f"Commande #{commande.pk} validée.")
 
         elif action == "refuser_commande":
@@ -148,6 +150,7 @@ def tableau_de_bord(request):
             commande.stock.save(update_fields=["quantite_disponible"])
             commande.statut = "annulee"
             commande.save(update_fields=["statut"])
+            envoyer_notification_statut(commande)
             messages.success(request, f"Commande #{commande.pk} refusée, stock restitué.")
 
         elif action == "marquer_preparee":
@@ -161,6 +164,7 @@ def tableau_de_bord(request):
             commande.statut = "preparee"
             commande.numero_scelle = f"SCL-{secrets.token_hex(4).upper()}"
             commande.save(update_fields=["statut", "numero_scelle"])
+            envoyer_notification_statut(commande)
             messages.success(
                 request,
                 f"Commande #{commande.pk} préparée et scellée (n° {commande.numero_scelle}).",
@@ -175,6 +179,7 @@ def tableau_de_bord(request):
             )
             commande.statut = "en_livraison"
             commande.save(update_fields=["statut"])
+            envoyer_notification_statut(commande)
             messages.success(request, f"Commande #{commande.pk} en cours de livraison.")
 
         elif action == "marquer_livree":
@@ -183,6 +188,7 @@ def tableau_de_bord(request):
             )
             commande.statut = "livree"
             commande.save(update_fields=["statut"])
+            envoyer_notification_statut(commande)
             messages.success(request, f"Commande #{commande.pk} marquée comme livrée.")
 
         # Redirection après traitement pour éviter qu'un rafraîchissement de
