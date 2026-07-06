@@ -83,6 +83,9 @@ def recherche_medicament(request):
             "prix_gnf": stock.prix_unitaire_gnf,
             "quantite_disponible": stock.quantite_disponible,
             "distance_km": round(distance_km, 2),
+            # Indique au front-end s'il doit exiger une photo d'ordonnance
+            # avant de valider la réservation.
+            "sur_ordonnance": stock.medicament.est_sur_ordonnance,
         })
 
     # 3. Tri par proximité : la pharmacie la plus proche apparaît en premier

@@ -18,6 +18,7 @@ class CommandeSerializer(serializers.ModelSerializer):
             "quantite",
             "mode_livraison",
             "adresse_livraison",
+            "ordonnance",
             "statut",
             "date_creation",
         ]
@@ -44,6 +45,15 @@ class CommandeSerializer(serializers.ModelSerializer):
         if data.get("mode_livraison") == "livraison" and not data.get("adresse_livraison", "").strip():
             raise serializers.ValidationError(
                 "Une adresse de livraison est obligatoire pour une livraison à domicile."
+            )
+
+        # Un médicament marqué "sur ordonnance" ne peut pas être réservé sans
+        # qu'une photo d'ordonnance soit jointe : c'est la pharmacie qui vérifiera
+        # ensuite sa validité avant de valider la commande.
+        if stock.medicament.est_sur_ordonnance and not data.get("ordonnance"):
+            raise serializers.ValidationError(
+                "Ce médicament est vendu sur ordonnance : merci de joindre une photo de "
+                "l'ordonnance pour continuer la réservation."
             )
         return data
 
