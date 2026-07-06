@@ -271,6 +271,35 @@
     }
     .champ-adresse:focus { outline: none; border-color: var(--vert); background: white; }
 
+    .badge-ordonnance {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--orange, #8A5A00);
+        background: #FFF4E0;
+        padding: 2px 8px;
+        border-radius: 10px;
+        white-space: nowrap;
+        margin-left: 6px;
+    }
+    .bloc-ordonnance {
+        margin-top: 10px;
+        padding: 10px 12px;
+        background: var(--fond);
+        border: 1px dashed var(--gris-clair);
+        border-radius: 8px;
+    }
+    .bloc-ordonnance label {
+        display: block;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 6px;
+    }
+    .bloc-ordonnance input[type="file"] { font-size: 0.82rem; width: 100%; }
+
     .resultat .bouton-reserver {
         display: block;
         width: 100%;
@@ -405,22 +434,41 @@
             return;
         }
 
+        // Le champ ordonnance n'existe dans le DOM que pour les médicaments
+        // marqués "sur ordonnance" (voir sur_ordonnance renvoyé par l'API).
+        const champOrdonnance = carte.querySelector(".champ-ordonnance");
+        const fichierOrdonnance = champOrdonnance && champOrdonnance.files.length > 0
+            ? champOrdonnance.files[0]
+            : null;
+
+        if (champOrdonnance && !fichierOrdonnance) {
+            alert("Ce médicament est sur ordonnance : merci de joindre une photo de l'ordonnance.");
+            return;
+        }
+
+        // FormData plutôt que JSON : nécessaire pour pouvoir joindre un fichier
+        // (photo d'ordonnance) dans la même requête que le reste des données.
+        const donneesEnvoyees = new FormData();
+        donneesEnvoyees.append("stock", stockId);
+        donneesEnvoyees.append("quantite", 1);
+        donneesEnvoyees.append("mode_livraison", modeLivraison);
+        donneesEnvoyees.append("adresse_livraison", adresseLivraison);
+        if (fichierOrdonnance) {
+            donneesEnvoyees.append("ordonnance", fichierOrdonnance);
+        }
+
         bouton.disabled = true;
         bouton.textContent = "Réservation en cours...";
         try {
             const reponse = await fetch("/api/commandes/", {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json",
+                    // Pas de Content-Type ici : le navigateur le fixe lui-même
+                    // avec la bonne "boundary" multipart quand on envoie un FormData.
                     "X-CSRFToken": lireCookie("csrftoken"),
                 },
                 credentials: "same-origin",
-                body: JSON.stringify({
-                    stock: stockId,
-                    quantite: 1,
-                    mode_livraison: modeLivraison,
-                    adresse_livraison: adresseLivraison,
-                }),
+                body: donneesEnvoyees,
             });
             const donnees = await reponse.json();
 
@@ -513,6 +561,7 @@
                             <h3>${resultat.pharmacie} — ${resultat.quartier}</h3>
                         </div>
                         <div class="badge-verifiee">✓ Officine vérifiée ONPG/DNPM</div>
+                        ${resultat.sur_ordonnance ? `<span class="badge-ordonnance">🩺 Ordonnance requise</span>` : ""}
                         <div class="ligne">${resultat.medicament}</div>
                         <div class="ligne prix">${resultat.prix_gnf.toLocaleString("fr-FR")} GNF</div>
                         <div class="ligne">Quantité disponible : ${resultat.quantite_disponible}</div>
@@ -529,6 +578,12 @@
                             </label>
                         </div>
                         <input type="text" class="champ-adresse" placeholder="Quartier + repère pour la livraison" style="display:none;">
+                        ${resultat.sur_ordonnance ? `
+                        <div class="bloc-ordonnance">
+                            <label>📄 Photo de l'ordonnance (obligatoire pour ce médicament)</label>
+                            <input type="file" class="champ-ordonnance" accept="image/*" capture="environment">
+                        </div>
+                        ` : ""}
                         ` : ""}
                     </div>
                 `;

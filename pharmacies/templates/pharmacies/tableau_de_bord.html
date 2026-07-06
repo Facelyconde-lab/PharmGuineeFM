@@ -233,7 +233,14 @@
                     {% for commande in commandes %}
                         <tr>
                             <td>{{ commande.patient.username }}</td>
-                            <td>{{ commande.stock.medicament.nom_commercial }}</td>
+                            <td>
+                                {{ commande.stock.medicament.nom_commercial }}
+                                {% if commande.ordonnance %}
+                                    <a class="scelle" href="{{ commande.ordonnance.url }}" target="_blank" rel="noopener">📄 Voir l'ordonnance</a>
+                                {% elif commande.stock.medicament.est_sur_ordonnance %}
+                                    <span class="scelle" style="color: var(--rouge);">⚠️ Aucune ordonnance jointe</span>
+                                {% endif %}
+                            </td>
                             <td>{{ commande.quantite }}</td>
                             <td>
                                 <span class="badge bleu">{{ commande.get_statut_display }}</span>
