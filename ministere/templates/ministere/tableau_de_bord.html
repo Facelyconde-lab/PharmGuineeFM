@@ -102,6 +102,30 @@
     .alerte-carte .detail { font-size: 0.85rem; color: #7A1620; margin-top: 2px; }
 
     .vide { color: var(--gris); font-size: 0.9rem; font-style: italic; margin: 0; }
+
+    /* Conteneurs des graphiques : hauteur fixe nécessaire pour Chart.js
+       (maintainAspectRatio: false), sinon le canvas grandirait sans limite. */
+    .grille-graphes {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 16px;
+        margin-bottom: 18px;
+    }
+    .carte-graphe {
+        background: white;
+        border-radius: 10px;
+        padding: 16px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .carte-graphe h3 {
+        margin: 0 0 12px;
+        font-size: 0.85rem;
+        color: var(--gris);
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+    .zone-graphe { position: relative; height: 240px; }
+    .zone-graphe.petite { height: 200px; }
 </style>
 </head>
 <body>
@@ -142,6 +166,13 @@
                 <div class="libelle">Lignes en stock faible (≤ {{ seuil_alerte_stock }} unités)</div>
             </div>
         </div>
+
+        <div class="grille-graphes" style="margin-top: 16px;">
+            <div class="carte-graphe">
+                <h3>Répartition globale des stocks</h3>
+                <div class="zone-graphe petite"><canvas id="grapheRepartitionStocks"></canvas></div>
+            </div>
+        </div>
     </section>
 
     <section>
@@ -166,6 +197,10 @@
     <section>
         <h2>Pénuries par médicament</h2>
         {% if penuries_par_medicament %}
+            <div class="carte-graphe" style="margin-bottom: 16px;">
+                <h3>Pharmacies en rupture, par médicament (8 premiers)</h3>
+                <div class="zone-graphe"><canvas id="graphePenuries"></canvas></div>
+            </div>
             <div class="scroll-horizontal">
                 <table>
                     <thead>
@@ -203,6 +238,10 @@
             Alerte précoce, avant que ces médicaments ne tombent en rupture totale.
         </p>
         {% if stocks_faibles_par_medicament %}
+            <div class="carte-graphe" style="margin-bottom: 16px;">
+                <h3>Pharmacies en stock faible, par médicament (8 premiers)</h3>
+                <div class="zone-graphe"><canvas id="grapheStocksFaibles"></canvas></div>
+            </div>
             <div class="scroll-horizontal">
                 <table>
                     <thead>
@@ -227,6 +266,10 @@
 
     <section>
         <h2>Tendances régionales (par quartier)</h2>
+        <div class="carte-graphe" style="margin-bottom: 16px;">
+            <h3>Taux de rupture par quartier</h3>
+            <div class="zone-graphe"><canvas id="grapheQuartiers"></canvas></div>
+        </div>
         <div class="scroll-horizontal">
             <table>
                 <thead>
@@ -256,6 +299,10 @@
     <section>
         <h2>Commandes par statut</h2>
         {% if commandes_par_statut %}
+            <div class="carte-graphe" style="margin-bottom: 16px; max-width: 420px;">
+                <h3>Répartition des commandes</h3>
+                <div class="zone-graphe petite"><canvas id="grapheCommandes"></canvas></div>
+            </div>
             <div class="scroll-horizontal">
                 <table>
                     <thead>
@@ -276,6 +323,124 @@
         {% endif %}
     </section>
 </main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script>
+    // Couleurs cohérentes avec la charte du tableau de bord (voir :root en CSS)
+    const COULEUR_BLEU = "#1F4E79";
+    const COULEUR_VERT = "#1F6E43";
+    const COULEUR_ROUGE = "#B00020";
+    const COULEUR_ORANGE = "#E29200";
+    const COULEUR_GRIS = "#9CA3AF";
+
+    Chart.defaults.font.family = "-apple-system, 'Segoe UI', Arial, sans-serif";
+    Chart.defaults.font.size = 11.5;
+
+    const optionsBase = {
+        maintainAspectRatio: false,
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
+    };
+
+    // --- 1. Répartition globale des stocks (doughnut) --------------------
+    // Calcul en JavaScript plutôt que dans le template Django, qui ne fait
+    // pas facilement d'arithmétique : on réutilise simplement les chiffres
+    // déjà affichés dans les cartes juste au-dessus.
+    const stockOk = Math.max(0, {{ total_lignes_stock }} - {{ total_en_rupture }} - {{ total_stock_faible }});
+    new Chart(document.getElementById("grapheRepartitionStocks"), {
+        type: "doughnut",
+        data: {
+            labels: ["Disponible", "Stock faible", "En rupture"],
+            datasets: [{
+                data: [stockOk, {{ total_stock_faible }}, {{ total_en_rupture }}],
+                backgroundColor: [COULEUR_VERT, COULEUR_ORANGE, COULEUR_ROUGE],
+                borderWidth: 0,
+            }],
+        },
+        options: {
+            maintainAspectRatio: false,
+            responsive: true,
+            plugins: { legend: { position: "bottom", labels: { boxWidth: 12, padding: 14 } } },
+        },
+    });
+
+    // --- 2. Pénuries par médicament (barres) ------------------------------
+    {% if penuries_par_medicament %}
+    new Chart(document.getElementById("graphePenuries"), {
+        type: "bar",
+        data: {
+            labels: [{% for m in penuries_par_medicament|slice:":8" %}"{{ m.nom_commercial|escapejs }}",{% endfor %}],
+            datasets: [{
+                label: "Pharmacies en rupture",
+                data: [{% for m in penuries_par_medicament|slice:":8" %}{{ m.nb_pharmacies_rupture }},{% endfor %}],
+                backgroundColor: COULEUR_ROUGE,
+                borderRadius: 4,
+                maxBarThickness: 42,
+            }],
+        },
+        options: optionsBase,
+    });
+    {% endif %}
+
+    // --- 3. Stocks faibles par médicament (barres) -------------------------
+    {% if stocks_faibles_par_medicament %}
+    new Chart(document.getElementById("grapheStocksFaibles"), {
+        type: "bar",
+        data: {
+            labels: [{% for m in stocks_faibles_par_medicament|slice:":8" %}"{{ m.nom_commercial|escapejs }}",{% endfor %}],
+            datasets: [{
+                label: "Pharmacies en stock faible",
+                data: [{% for m in stocks_faibles_par_medicament|slice:":8" %}{{ m.nb_pharmacies_stock_faible }},{% endfor %}],
+                backgroundColor: COULEUR_ORANGE,
+                borderRadius: 4,
+                maxBarThickness: 42,
+            }],
+        },
+        options: optionsBase,
+    });
+    {% endif %}
+
+    // --- 4. Taux de rupture par quartier (barres) ---------------------------
+    // Couleur calculée en JS à partir des valeurs elles-mêmes (rouge au-delà de
+    // 20%, comme le badge déjà utilisé dans le tableau juste en dessous),
+    // plutôt que de faire ce calcul dans le template Django.
+    const tauxRuptureQuartiers = [{% for ligne in tendances_par_quartier %}{{ ligne.taux_rupture }},{% endfor %}];
+    new Chart(document.getElementById("grapheQuartiers"), {
+        type: "bar",
+        data: {
+            labels: [{% for ligne in tendances_par_quartier %}"{{ ligne.quartier|escapejs }}",{% endfor %}],
+            datasets: [{
+                label: "Taux de rupture (%)",
+                data: tauxRuptureQuartiers,
+                backgroundColor: tauxRuptureQuartiers.map(v => v > 20 ? COULEUR_ROUGE : COULEUR_VERT),
+                borderRadius: 4,
+                maxBarThickness: 48,
+            }],
+        },
+        options: optionsBase,
+    });
+
+    // --- 5. Commandes par statut (doughnut) ---------------------------------
+    {% if commandes_par_statut %}
+    new Chart(document.getElementById("grapheCommandes"), {
+        type: "doughnut",
+        data: {
+            labels: [{% for ligne in commandes_par_statut %}"{{ ligne.statut|escapejs }}",{% endfor %}],
+            datasets: [{
+                data: [{% for ligne in commandes_par_statut %}{{ ligne.total }},{% endfor %}],
+                backgroundColor: [COULEUR_BLEU, COULEUR_VERT, COULEUR_ORANGE, COULEUR_ROUGE, COULEUR_GRIS, "#8E5CBB"],
+                borderWidth: 0,
+            }],
+        },
+        options: {
+            maintainAspectRatio: false,
+            responsive: true,
+            plugins: { legend: { position: "bottom", labels: { boxWidth: 12, padding: 12, font: { size: 10.5 } } } },
+        },
+    });
+    {% endif %}
+</script>
 
 </body>
 </html>
