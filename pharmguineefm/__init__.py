@@ -1,8 +1,9 @@
-# PyMySQL se fait passer pour le driver "MySQLdb" que Django attend par
-# défaut. On l'utilise à la place de mysqlclient car PyMySQL est écrit en
-# pur Python : aucune compilation nécessaire, ce qui évite des soucis
-# d'installation sous Windows (mysqlclient demande normalement un
-# compilateur C et les en-têtes MySQL).
-import pymysql
-
-pymysql.install_as_MySQLdb()
+# PyMySQL fait passer pour "MySQLdb" (évite mysqlclient et son compilateur C,
+# utile sous Windows). Mais on tourne en SQLite partout pour l'instant (voir
+# settings.py, DB_ENGINE) - pymysql n'est même pas installé sur PythonAnywhere,
+# donc import optionnel pour pas planter tout manage.py là-bas.
+try:
+    import pymysql
+    pymysql.install_as_MySQLdb()
+except ImportError:
+    pass
