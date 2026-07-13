@@ -26,6 +26,17 @@ class PharmacieAdmin(ImportExportModelAdmin):
     list_display = ("nom", "quartier", "telephone", "est_de_garde", "est_verifiee", "compte_gestionnaire")
     search_fields = ("nom", "numero_agrement_onpg")
     list_filter = ("quartier", "est_de_garde", "est_verifiee")
+    actions = ["marquer_verifiees", "marquer_non_verifiees"]
+
+    @admin.action(description="Marquer comme vérifiée (ONPG/DNPM)")
+    def marquer_verifiees(self, request, queryset):
+        total = queryset.update(est_verifiee=True)
+        self.message_user(request, f"{total} pharmacie(s) marquée(s) comme vérifiée(s).")
+
+    @admin.action(description="Marquer comme NON vérifiée")
+    def marquer_non_verifiees(self, request, queryset):
+        total = queryset.update(est_verifiee=False)
+        self.message_user(request, f"{total} pharmacie(s) marquée(s) comme non vérifiée(s).")
 
 
 class StockResource(resources.ModelResource):
