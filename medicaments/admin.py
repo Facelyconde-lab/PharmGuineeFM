@@ -5,14 +5,14 @@ from .models import Medicament
 
 
 class MedicamentResource(resources.ModelResource):
-    # colonnes attendues dans le fichier Excel/CSV : nom_commercial, dci, dosage,
-    # categorie, description, est_sur_ordonnance. "id" sert juste à mettre à jour
-    # une fiche déjà importée plutôt que d'en recréer une (laisser vide pour un ajout).
+    # colonnes attendues : nom_commercial, dci, dosage, categorie, description,
+    # est_sur_ordonnance. import_id_fields vide -> chaque ligne crée toujours une
+    # NOUVELLE fiche (pas de mise à jour d'existant, pour éviter les soucis de
+    # colonne id vide). Pour corriger une fiche déjà créée, passer par l'admin normal.
     class Meta:
         model = Medicament
-        fields = ("id", "nom_commercial", "dci", "dosage", "categorie", "description", "est_sur_ordonnance")
-        import_id_fields = ("id",)
-        skip_unchanged = True
+        fields = ("nom_commercial", "dci", "dosage", "categorie", "description", "est_sur_ordonnance")
+        import_id_fields = ()
 
 
 @admin.register(Medicament)
