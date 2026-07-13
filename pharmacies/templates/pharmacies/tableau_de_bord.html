@@ -186,8 +186,8 @@
 <header>
     <div class="logo-ligne">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M10.5 20.5L20.5 10.5C22 9 22 6.5 20.5 5S17 3.5 15.5 5L5.5 15C4 16.5 4 19 5.5 20.5S9 22 10.5 20.5Z" stroke="white" stroke-width="1.6"/>
-            <line x1="9" y1="9.5" x2="14.5" y2="15" stroke="white" stroke-width="1.6"/>
+            <path d="M12 21s7-7.58 7-12.5A7 7 0 0 0 5 8.5C5 13.42 12 21 12 21Z" stroke="white" stroke-width="1.7" stroke-linejoin="round"/>
+            <path d="M12 6.3v4.4M9.8 8.5h4.4" stroke="white" stroke-width="1.7" stroke-linecap="round"/>
         </svg>
         <h1>Espace pharmacie — {{ pharmacie.nom }}</h1>
     </div>
@@ -205,7 +205,10 @@
 
     {% if stocks_a_alerter %}
         <section>
-            <h2>⚠️ À réapprovisionner ({{ stocks_a_alerter|length }})</h2>
+            <h2>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align: -2px;"><path d="M12 3.5l10 17H2l10-17Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><line x1="12" y1="10" x2="12" y2="14.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="12" cy="17.3" r="0.9" fill="currentColor"/></svg>
+                À réapprovisionner ({{ stocks_a_alerter|length }})
+            </h2>
             <div class="alertes-stock">
                 {% for stock in stocks_a_alerter %}
                     <div class="alerte-stock {% if stock.est_en_rupture %}rupture{% else %}faible{% endif %}">
@@ -236,9 +239,15 @@
                             <td>
                                 {{ commande.stock.medicament.nom_commercial }}
                                 {% if commande.ordonnance %}
-                                    <a class="scelle" href="{{ commande.ordonnance.url }}" target="_blank" rel="noopener">📄 Voir l'ordonnance</a>
+                                    <a class="scelle" href="{{ commande.ordonnance.url }}" target="_blank" rel="noopener">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align: -1px;"><path d="M6 3h9l4 4v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M15 3v4h4" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><line x1="8" y1="12" x2="16" y2="12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><line x1="8" y1="16" x2="13" y2="16" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+                                        Voir l'ordonnance
+                                    </a>
                                 {% elif commande.stock.medicament.est_sur_ordonnance %}
-                                    <span class="scelle" style="color: var(--rouge);">⚠️ Aucune ordonnance jointe</span>
+                                    <span class="scelle" style="color: var(--rouge);">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align: -1px;"><path d="M12 3.5l10 17H2l10-17Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><line x1="12" y1="10" x2="12" y2="14.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="12" cy="17.3" r="0.9" fill="currentColor"/></svg>
+                                        Aucune ordonnance jointe
+                                    </span>
                                 {% endif %}
                             </td>
                             <td>{{ commande.quantite }}</td>

@@ -115,8 +115,8 @@
 <header>
     <div class="logo-ligne">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M10.5 20.5L20.5 10.5C22 9 22 6.5 20.5 5S17 3.5 15.5 5L5.5 15C4 16.5 4 19 5.5 20.5S9 22 10.5 20.5Z" stroke="white" stroke-width="1.6"/>
-            <line x1="9" y1="9.5" x2="14.5" y2="15" stroke="white" stroke-width="1.6"/>
+            <path d="M12 21s7-7.58 7-12.5A7 7 0 0 0 5 8.5C5 13.42 12 21 12 21Z" stroke="white" stroke-width="1.7" stroke-linejoin="round"/>
+            <path d="M12 6.3v4.4M9.8 8.5h4.4" stroke="white" stroke-width="1.7" stroke-linecap="round"/>
         </svg>
         <h1>PharmaSila Guinée</h1>
     </div>
@@ -151,7 +151,10 @@
                 <div class="ligne"><span class="libelle">Quantité :</span> {{ commande.quantite }}</div>
                 <div class="ligne"><span class="libelle">Mode :</span> {{ commande.get_mode_livraison_display }}{% if commande.adresse_livraison %} — {{ commande.adresse_livraison }}{% endif %}</div>
                 {% if commande.numero_scelle %}
-                    <span class="scelle">🔒 Scellé : {{ commande.numero_scelle }}</span>
+                    <span class="scelle">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align: -1px;"><rect x="5" y="11" width="14" height="9" rx="1.5" stroke="currentColor" stroke-width="1.7"/><path d="M8 11V7a4 4 0 0 1 8 0v4" stroke="currentColor" stroke-width="1.7"/></svg>
+                        Scellé : {{ commande.numero_scelle }}
+                    </span>
                 {% endif %}
                 <div class="date">Réservée le {{ commande.date_creation|date:"d/m/Y à H:i" }}</div>
             </div>
