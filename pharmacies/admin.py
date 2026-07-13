@@ -1,6 +1,8 @@
 from django.contrib import admin
-from import_export import resources
+from import_export import fields, resources
 from import_export.admin import ImportExportModelAdmin
+from import_export.widgets import ForeignKeyWidget
+from medicaments.models import Medicament
 from .models import Pharmacie, Stock
 
 
@@ -26,8 +28,31 @@ class PharmacieAdmin(ImportExportModelAdmin):
     list_filter = ("quartier", "est_de_garde", "est_verifiee")
 
 
+class StockResource(resources.ModelResource):
+    # pharmacie/medicament référencés par leur clé naturelle plutôt que par id
+    # (id interne inconnu au moment de préparer le fichier Excel) : pharmacie par
+    # numero_agrement_onpg, medicament par nom_commercial. Importer médicaments
+    # et pharmacies AVANT ce fichier, sinon la correspondance échoue.
+    pharmacie = fields.Field(
+        column_name="pharmacie",
+        attribute="pharmacie",
+        widget=ForeignKeyWidget(Pharmacie, field="numero_agrement_onpg"),
+    )
+    medicament = fields.Field(
+        column_name="medicament",
+        attribute="medicament",
+        widget=ForeignKeyWidget(Medicament, field="nom_commercial"),
+    )
+
+    class Meta:
+        model = Stock
+        fields = ("pharmacie", "medicament", "quantite_disponible", "prix_unitaire_gnf")
+        import_id_fields = ()
+
+
 @admin.register(Stock)
-class StockAdmin(admin.ModelAdmin):
+class StockAdmin(ImportExportModelAdmin):
+    resource_classes = [StockResource]
     list_display = ("pharmacie", "medicament", "quantite_disponible", "prix_unitaire_gnf", "date_derniere_mise_a_jour")
     list_filter = ("pharmacie",)
     search_fields = ("medicament__nom_commercial", "pharmacie__nom")
