@@ -78,6 +78,9 @@ INSTALLED_APPS = [
     # Django REST Framework : fournit les outils pour construire l'API
     'rest_framework',
 
+    # bouton "Importer/Exporter" dans l'admin -> import en masse depuis Excel/CSV
+    'import_export',
+
     # Applications propres au projet PharmGuinéeFM / PharmaSila
     'patients',
     'pharmacies',
