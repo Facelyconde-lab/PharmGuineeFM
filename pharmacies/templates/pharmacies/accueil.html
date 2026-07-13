@@ -17,6 +17,9 @@
     }
     * { box-sizing: border-box; }
     html { scroll-behavior: smooth; }
+    /* Alignement propre des icônes SVG insérées au fil du texte (badges,
+       libellés retrait/livraison, distance...) */
+    svg { vertical-align: middle; flex-shrink: 0; }
     body {
         font-family: -apple-system, "Segoe UI", Arial, sans-serif;
         margin: 0;
@@ -363,6 +366,8 @@
 <div class="barre-compte">
     {% if user.is_authenticated %}
         <span>Connecté(e) en tant que <strong>{{ user.username }}</strong></span>
+        <span>·</span>
+        <a href="{% url 'patients:mes_commandes' %}">Mes commandes</a>
         {% if user.pharmacie_geree %}
             <span>·</span>
             <a href="{% url 'tableau_de_bord' %}">Espace pharmacie</a>
@@ -408,10 +413,19 @@
     <div id="message"></div>
 </main>
 
-<footer>PharmaSila Guinée — projet pilote, Conakry 2026</footer>
+<footer>PharmaSila Guinée — Conakry, 2026</footer>
 
 <script>
     const estConnecte = {{ user.is_authenticated|yesno:"true,false" }};
+
+    // Icônes SVG, dans le même style (traits fins, sans remplissage) que le
+    // logo de l'en-tête — remplacent les emojis utilisés jusqu'ici dans les
+    // badges, pour une interface plus soignée et cohérente visuellement.
+    const iconeVerifiee = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 12.5l5 5L20 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+    const iconePosition = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 22s7-7.58 7-12.5A7 7 0 0 0 5 9.5C5 14.42 12 22 12 22Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="9.5" r="2.3" stroke="currentColor" stroke-width="1.8"/></svg>`;
+    const iconeRetrait = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="9" width="16" height="11" rx="1.5" stroke="currentColor" stroke-width="1.7"/><path d="M4 9l2-5h12l2 5" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><line x1="12" y1="13" x2="12" y2="17" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><line x1="10" y1="15" x2="14" y2="15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>`;
+    const iconeLivraison = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="8" width="11" height="9" rx="1" stroke="currentColor" stroke-width="1.7"/><path d="M13 11h4l4 3.5V17h-8" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="6.5" cy="18.5" r="1.6" stroke="currentColor" stroke-width="1.6"/><circle cx="16.5" cy="18.5" r="1.6" stroke="currentColor" stroke-width="1.6"/></svg>`;
+    const iconeOrdonnance = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 3h9l4 4v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M15 3v4h4" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><line x1="8" y1="12" x2="16" y2="12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="8" y1="16" x2="13" y2="16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>`;
 
     function lireCookie(nom) {
         const valeur = document.cookie
@@ -578,27 +592,27 @@
                         <div class="entete-resultat">
                             <h3>${nomPharmacie} — ${nomQuartier}</h3>
                         </div>
-                        <div class="badge-verifiee">✓ Officine vérifiée ONPG/DNPM</div>
-                        ${resultat.sur_ordonnance ? `<span class="badge-ordonnance">🩺 Ordonnance requise</span>` : ""}
+                        <div class="badge-verifiee">${iconeVerifiee} Officine vérifiée ONPG/DNPM</div>
+                        ${resultat.sur_ordonnance ? `<span class="badge-ordonnance">${iconeOrdonnance} Ordonnance requise</span>` : ""}
                         <div class="ligne">${nomMedicament}</div>
                         <div class="ligne prix">${resultat.prix_gnf.toLocaleString("fr-FR")} GNF</div>
                         <div class="ligne">Quantité disponible : ${resultat.quantite_disponible}</div>
-                        <div class="distance">📍 ${resultat.distance_km} km</div>
+                        <div class="distance">${iconePosition} ${resultat.distance_km} km</div>
                         ${estConnecte ? `
                         <div class="choix-livraison">
                             <label>
                                 <input type="radio" name="livraison-${resultat.stock_id}" value="retrait" checked>
-                                🏥 Retrait
+                                ${iconeRetrait} Retrait
                             </label>
                             <label>
                                 <input type="radio" name="livraison-${resultat.stock_id}" value="livraison">
-                                🚚 Livraison
+                                ${iconeLivraison} Livraison
                             </label>
                         </div>
                         <input type="text" class="champ-adresse" placeholder="Quartier + repère pour la livraison" style="display:none;">
                         ${resultat.sur_ordonnance ? `
                         <div class="bloc-ordonnance">
-                            <label>📄 Photo de l'ordonnance (obligatoire pour ce médicament)</label>
+                            <label>${iconeOrdonnance} Photo de l'ordonnance (obligatoire pour ce médicament)</label>
                             <input type="file" class="champ-ordonnance" accept="image/*" capture="environment">
                         </div>
                         ` : ""}
