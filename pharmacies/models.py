@@ -4,9 +4,9 @@ from medicaments.models import Medicament
 
 
 class Pharmacie(models.Model):
-    """Une officine agréée, vérifiée auprès de l'Ordre National des Pharmaciens de Guinée (ONPG)."""
+    """Une officine agréée, vérifiée auprès de l'ONPG."""
 
-    # Liste de départ des quartiers de Conakry ; à compléter au fil du déploiement
+    # quartiers de Conakry pour commencer, à compléter plus tard
     QUARTIERS = [
         ("kaloum", "Kaloum"),
         ("ratoma", "Ratoma"),
@@ -19,25 +19,21 @@ class Pharmacie(models.Model):
     quartier = models.CharField(max_length=50, choices=QUARTIERS)
     adresse = models.CharField(max_length=255)
 
-    # Coordonnées GPS utilisées pour le calcul de distance (voir geopy dans le dossier projet)
+    # pour geopy (calcul de distance côté recherche)
     latitude = models.DecimalField(max_digits=9, decimal_places=6)
     longitude = models.DecimalField(max_digits=9, decimal_places=6)
 
-    # Numéro d'agrément délivré par l'ONPG : sert à vérifier que l'officine
-    # est légalement enregistrée avant de l'afficher aux patients
     numero_agrement_onpg = models.CharField(max_length=50, unique=True)
 
     telephone = models.CharField(max_length=20)
 
     est_de_garde = models.BooleanField("De garde actuellement", default=False)
 
-    # Une pharmacie n'apparaît dans les résultats de recherche que si elle
-    # a été validée manuellement (agrément vérifié auprès de l'ONPG/DNPM)
+    # visible dans la recherche seulement si coché -> agrément vérifié à la main pour l'instant
     est_verifiee = models.BooleanField("Vérifiée par l'ONPG/DNPM", default=False)
 
-    # Le compte utilisateur (Django) autorisé à gérer cette officine :
-    # mettre à jour les stocks, valider ou refuser les commandes.
-    # SET_NULL : si le compte est supprimé, la pharmacie reste, juste sans gestionnaire.
+    # le compte qui gère cette pharmacie (maj stocks, commandes)
+    # SET_NULL plutôt que CASCADE : si le compte saute, la pharmacie reste
     compte_gestionnaire = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -58,16 +54,10 @@ class Pharmacie(models.Model):
 
 
 class Stock(models.Model):
-    """
-    Fait le lien entre une pharmacie et un médicament : quantité disponible
-    et prix pratiqué. C'est la table interrogée à chaque recherche patient.
-    """
+    """Pharmacie + médicament + quantité + prix. La table que la recherche interroge."""
 
-    # En dessous (ou à hauteur) de cette quantité, on considère le stock comme
-    # "faible" et on alerte la pharmacie pour qu'elle se réapprovisionne avant
-    # la rupture totale. Valeur simple et unique pour l'instant (MVP) ; à terme,
-    # ce seuil pourrait varier par médicament (ex : plus élevé pour les
-    # antipaludiques en saison des pluies).
+    # seuil d'alerte stock faible - fixe pour l'instant, à voir si ça doit
+    # varier par médicament plus tard (antipaludiques en saison des pluies p.ex)
     SEUIL_ALERTE_STOCK = 5
 
     pharmacie = models.ForeignKey(Pharmacie, on_delete=models.CASCADE, related_name="stocks")
@@ -75,16 +65,14 @@ class Stock(models.Model):
 
     quantite_disponible = models.PositiveIntegerField(default=0)
 
-    # Prix affiché en francs guinéens (GNF), pas de centimes en pratique courante
-    prix_unitaire_gnf = models.PositiveIntegerField("Prix unitaire (GNF)")
+    prix_unitaire_gnf = models.PositiveIntegerField("Prix unitaire (GNF)")  # pas de centimes ici
 
     date_derniere_mise_a_jour = models.DateTimeField(auto_now=True)
 
     class Meta:
         verbose_name = "Stock"
         verbose_name_plural = "Stocks"
-        # Une pharmacie ne peut avoir qu'une seule ligne de stock par médicament
-        unique_together = ("pharmacie", "medicament")
+        unique_together = ("pharmacie", "medicament")  # 1 ligne par médicament max
         indexes = [models.Index(fields=["medicament", "quantite_disponible"])]
 
     def __str__(self):
@@ -96,6 +84,5 @@ class Stock(models.Model):
 
     @property
     def est_stock_faible(self):
-        # > 0 pour ne pas doubler avec est_en_rupture : un stock à 0 est déjà
-        # signalé comme rupture, pas la peine de le compter deux fois
+        # > 0 pour pas compter deux fois avec est_en_rupture
         return 0 < self.quantite_disponible <= self.SEUIL_ALERTE_STOCK

@@ -4,7 +4,7 @@ from pharmacies.models import Stock
 
 
 class Commande(models.Model):
-    """Une réservation de médicament passée par un patient sur un stock précis."""
+    """Réservation d'un patient sur un stock précis."""
 
     STATUTS = [
         ("en_attente", "En attente de validation"),
@@ -20,32 +20,25 @@ class Commande(models.Model):
         ("livraison", "Livraison à domicile"),
     ]
 
-    # Lié au modèle utilisateur Django standard (settings.AUTH_USER_MODEL) :
-    # inutile de recréer un système de comptes, on l'étendra plus tard si besoin
     patient = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="commandes"
     )
 
-    # on_delete=PROTECT : on refuse de supprimer un stock tant qu'il existe
-    # des commandes liées, pour ne jamais perdre l'historique d'une transaction
+    # PROTECT : pas le droit de supprimer un stock tant qu'il a des commandes liées
+    # (sinon on perd l'historique)
     stock = models.ForeignKey(Stock, on_delete=models.PROTECT, related_name="commandes")
 
     quantite = models.PositiveIntegerField(default=1)
 
-    # Photo de l'ordonnance, obligatoire uniquement si le médicament est
-    # marqué "est_sur_ordonnance" côté modèle Medicament
-    ordonnance = models.ImageField(upload_to="ordonnances/", blank=True, null=True)
+    ordonnance = models.ImageField(upload_to="ordonnances/", blank=True, null=True)  # requis si médicament sur ordonnance
 
-    # Généré au moment de la préparation, imprimé sur le scellé de sécurité
-    numero_scelle = models.CharField(max_length=30, blank=True)
+    numero_scelle = models.CharField(max_length=30, blank=True)  # généré à la préparation
 
     statut = models.CharField(max_length=20, choices=STATUTS, default="en_attente")
     mode_livraison = models.CharField(max_length=20, choices=MODES_LIVRAISON)
 
-    # Utile uniquement si mode_livraison = "livraison" (validé côté serializer) :
-    # quartier + repère, pour que le livreur retrouve le patient. Laissé libre
-    # (pas de champ structuré rue/numéro) car l'adressage formel n'existe pas
-    # partout à Conakry — un repère textuel est plus fiable en pratique.
+    # texte libre plutôt que rue/numéro structuré - l'adressage formel
+    # n'existe pas partout à Conakry, un repère suffit en pratique
     adresse_livraison = models.CharField(
         max_length=255,
         blank=True,

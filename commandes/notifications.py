@@ -3,21 +3,10 @@ from django.conf import settings
 
 
 def _envoyer_email(destinataire, sujet, corps):
-    """
-    Envoie un email au patient.
-
-    Pourquoi deux chemins possibles : les comptes gratuits PythonAnywhere
-    bloquent le SMTP de façon intermittente (leur pare-feu code en dur les
-    IP des serveurs Gmail, qui changent parfois côté Google — voir
-    help.pythonanywhere.com/pages/SMTPForFreeUsers). L'API Brevo fonctionne
-    elle en HTTPS classique, toujours autorisé même sur un compte gratuit.
-
-    - Si BREVO_API_KEY est renseignée (production) : on passe par l'API
-      Brevo, une simple requête HTTPS.
-    - Sinon (développement local) : on utilise le backend email standard de
-      Django, qui affiche juste le message dans le terminal (backend
-      "console"), pratique pour tester sans compte Brevo.
-    """
+    # PythonAnywhere gratuit bloque le SMTP par intermittence (pare-feu figé sur
+    # des IP Gmail qui bougent côté Google - vu en prod, cf help.pythonanywhere.com/
+    # pages/SMTPForFreeUsers). Donc Brevo en HTTPS si la clé est là, sinon backend
+    # console de Django (juste affiché dans le terminal, pratique en local).
     if settings.BREVO_API_KEY:
         try:
             reponse = requests.post(
@@ -39,9 +28,7 @@ def _envoyer_email(destinataire, sujet, corps):
                 timeout=10,
             )
             if reponse.status_code >= 300:
-                # On ne bloque jamais le traitement de la commande pour un
-                # souci d'email : on se contente d'un message dans les logs
-                # PythonAnywhere (onglet Web > Log files > error log).
+                # log seulement, on bloque jamais la commande pour un souci d'email
                 print(f"[Brevo] Échec envoi à {destinataire} : {reponse.status_code} {reponse.text}")
         except requests.RequestException as erreur:
             print(f"[Brevo] Exception lors de l'envoi à {destinataire} : {erreur}")
@@ -57,20 +44,10 @@ def _envoyer_email(destinataire, sujet, corps):
 
 
 def envoyer_notification_statut(commande):
-    """
-    Envoie un email au patient pour l'informer du nouveau statut de sa
-    commande (validée, préparée, en livraison, livrée, refusée).
-
-    fail_silently=True : si l'envoi échoue (mauvais identifiants SMTP,
-    coupure réseau...), on ne veut surtout pas empêcher la pharmacie de
-    traiter la commande. La notification est un "plus", pas une étape
-    bloquante du parcours métier.
-    """
+    """Email au patient à chaque changement de statut."""
     patient = commande.patient
 
-    # Les comptes créés avant l'ajout du champ email obligatoire peuvent
-    # ne pas en avoir. On ignore simplement l'envoi dans ce cas plutôt que
-    # de planter la vue appelante.
+    # comptes créés avant l'ajout du champ email obligatoire -> peuvent ne pas en avoir
     if not patient.email:
         return
 
@@ -106,9 +83,7 @@ def envoyer_notification_statut(commande):
 
     corps = messages_par_statut.get(commande.statut)
     if not corps:
-        # Statut sans notification prévue (ex: "en_attente", juste après
-        # la réservation) : on ne fait rien.
-        return
+        return  # en_attente par ex, pas de notif prévue pour ce statut
 
     _envoyer_email(
         destinataire=patient.email,

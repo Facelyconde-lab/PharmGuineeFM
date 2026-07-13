@@ -8,14 +8,11 @@ from .forms import InscriptionForm
 
 
 def inscription(request):
-    """Création d'un compte patient (nom d'utilisateur + email + mot de passe)."""
     if request.method == "POST":
         formulaire = InscriptionForm(request.POST)
         if formulaire.is_valid():
             utilisateur = formulaire.save()
-            # On connecte automatiquement le patient juste après son inscription,
-            # pour lui éviter une étape de connexion supplémentaire
-            login(request, utilisateur)
+            login(request, utilisateur)  # connecté direct, pas besoin de se reconnecter juste après
             return redirect("accueil")
     else:
         formulaire = InscriptionForm()
@@ -23,7 +20,6 @@ def inscription(request):
 
 
 def connexion(request):
-    """Connexion d'un patient déjà inscrit."""
     if request.method == "POST":
         formulaire = AuthenticationForm(request, data=request.POST)
         if formulaire.is_valid():
@@ -41,11 +37,7 @@ def deconnexion(request):
 
 @login_required
 def mes_commandes(request):
-    """
-    Historique des commandes du patient connecté : lui permet de suivre où
-    en est chaque réservation (validée, préparée, en livraison, livrée...)
-    sans dépendre uniquement des emails de notification.
-    """
+    """Historique des commandes du patient - suivi sans dépendre que de l'email."""
     commandes = (
         Commande.objects.filter(patient=request.user)
         .select_related("stock__pharmacie", "stock__medicament")

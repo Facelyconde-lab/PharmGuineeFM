@@ -11,20 +11,15 @@ class CommandeAdmin(admin.ModelAdmin):
     )
     list_filter = ("statut", "mode_livraison")
     search_fields = ("patient__username", "numero_scelle")
-    # Champ en lecture seule affiché sur la fiche détail de la commande :
-    # évite de devoir passer par le tableau de bord pharmacie pour vérifier
-    # une ordonnance depuis l'admin (utile pour le ministère ou un contrôle a posteriori).
-    readonly_fields = ("apercu_ordonnance",)
+    readonly_fields = ("apercu_ordonnance",)  # pour vérifier une ordonnance direct depuis l'admin
 
     def lien_ordonnance(self, commande):
-        """Colonne rapide dans la liste des commandes : lien direct si une ordonnance existe."""
         if commande.ordonnance:
             return format_html('<a href="{}" target="_blank">📄 Voir</a>', commande.ordonnance.url)
         return "—"
     lien_ordonnance.short_description = "Ordonnance"
 
     def apercu_ordonnance(self, commande):
-        """Aperçu image affiché sur la fiche détail, pas seulement un lien texte."""
         if commande.ordonnance:
             return format_html(
                 '<a href="{0}" target="_blank">'

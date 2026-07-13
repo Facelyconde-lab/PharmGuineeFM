@@ -22,45 +22,28 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-# La clé et tous les réglages sensibles viennent maintenant du fichier .env
-# (jamais versionné dans Git, voir .gitignore), lu grâce à python-decouple.
-# En local, un fichier .env.example montre quelles variables définir.
-SECRET_KEY = config('SECRET_KEY')
+SECRET_KEY = config('SECRET_KEY')  # tout le sensible est dans .env, jamais versionné (cf .gitignore)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1,localhost', cast=Csv())
 
-# --- Sécurité en production -------------------------------------------------
-# Ces réglages ne s'activent que quand DEBUG=False (donc jamais en local avec
-# runserver, où il n'y a pas de HTTPS). C'est important : la plateforme
-# traite des données médicales (ordonnances, historique de commandes), donc
-# on force le chiffrement des échanges dès que le site est réellement en ligne.
+# --- sécu prod, actif seulement si DEBUG=False (jamais en local, pas de HTTPS avec runserver) ---
+# données médicales dedans (ordonnances, commandes) donc on force le chiffrement en ligne
 #
-# SECURE_PROXY_SSL_HEADER est nécessaire sur PythonAnywhere : leur serveur
-# gère le certificat HTTPS et relaie ensuite la requête à Django avec un
-# en-tête "X-Forwarded-Proto". Sans ce réglage, Django croirait que toutes
-# les requêtes arrivent en HTTP (même si le visiteur est bien en HTTPS) et
-# SECURE_SSL_REDIRECT créerait une boucle de redirection infinie.
+# SECURE_PROXY_SSL_HEADER obligatoire sur PythonAnywhere : leur proxy termine le HTTPS puis
+# relaie en HTTP avec un header X-Forwarded-Proto. Sans ça Django pense que tout arrive en HTTP
+# et SECURE_SSL_REDIRECT part en boucle de redirection infinie.
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SECURE_SSL_REDIRECT = not DEBUG
 SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
-# HSTS : dit au navigateur de refuser de revenir en HTTP pendant 1h après
-# une première visite en HTTPS. Valeur volontairement modeste pour l'instant
-# (à augmenter plus tard une fois le HTTPS bien confirmé stable).
-SECURE_HSTS_SECONDS = 3600 if not DEBUG else 0
+SECURE_HSTS_SECONDS = 3600 if not DEBUG else 0  # 1h pour l'instant, à monter une fois le HTTPS stable confirmé
 
-# --- Envoi d'emails (notifications de suivi de commande) -------------------
-# But : prévenir automatiquement le patient par email à chaque changement de
-# statut de sa commande (validée, préparée, en livraison, livrée, refusée).
-#
-# En local (DEBUG=True), aucun email n'est réellement envoyé : Django les
-# affiche simplement dans le terminal (backend "console"), ce qui permet de
-# tester sans avoir de vrais identifiants email. En production, on utilise
-# le SMTP de Gmail avec un compte dédié et un "mot de passe d'application"
-# (jamais le mot de passe Gmail normal, voir .env.example pour les détails).
+# --- emails (notif de suivi de commande à chaque changement de statut) ---
+# DEBUG=True : rien n'est vraiment envoyé, Django affiche juste dans le terminal (backend console)
+# prod : SMTP Gmail avec mot de passe d'application (jamais le vrai mdp, voir .env.example)
 EMAIL_BACKEND = config(
     'EMAIL_BACKEND',
     default='django.core.mail.backends.console.EmailBackend'
@@ -76,10 +59,8 @@ DEFAULT_FROM_EMAIL = config(
     'DEFAULT_FROM_EMAIL', default='PharmaSila Guinée <no-reply@pharmasila.gn>'
 )
 
-# Envoi via l'API HTTPS de Brevo (voir commandes/notifications.py) : contourne
-# le blocage SMTP intermittent des comptes gratuits PythonAnywhere. Si
-# BREVO_API_KEY est vide (ex: en local), le code retombe sur EMAIL_BACKEND
-# ci-dessus (backend "console" en dev).
+# Brevo en HTTPS (cf commandes/notifications.py) contourne le blocage SMTP PythonAnywhere gratuit.
+# vide en local -> retombe sur EMAIL_BACKEND ci-dessus
 BREVO_API_KEY = config('BREVO_API_KEY', default='')
 BREVO_SENDER_EMAIL = config('BREVO_SENDER_EMAIL', default='')
 
@@ -138,12 +119,9 @@ WSGI_APPLICATION = 'pharmguineefm.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# SQLite reste la base par défaut pour l'instant : le MySQL fourni par MAMP
-# (5.7) est trop ancien pour Django 5.2 (il faut 8.0+), et les comptes
-# gratuits PythonAnywhere créés après janvier 2026 n'incluent plus MySQL
-# (réservé à l'offre payante Developer). SQLite tient très bien la charge
-# pour un projet pilote. DB_ENGINE=mysql dans le .env permet de basculer
-# plus tard, si un hébergement avec MySQL 8+ est disponible.
+# SQLite pour l'instant : le MySQL de MAMP (5.7) est trop vieux pour Django 5.2 (faut 8.0+),
+# et PythonAnywhere gratuit n'inclut plus MySQL depuis janv. 2026. Suffit largement pour un pilote.
+# DB_ENGINE=mysql dans .env pour basculer si un hébergement MySQL 8+ arrive.
 if config('DB_ENGINE', default='sqlite') == 'sqlite':
     DATABASES = {
         'default': {
@@ -161,9 +139,7 @@ else:
             'HOST': config('DB_HOST', default='127.0.0.1'),
             'PORT': config('DB_PORT', default='3306'),
             'OPTIONS': {
-                # utf8mb4 : jeu de caractères complet, nécessaire pour bien
-                # stocker les accents français et les éventuels emojis
-                'charset': 'utf8mb4',
+                'charset': 'utf8mb4',  # sinon soucis avec les accents français
             },
         }
     }
