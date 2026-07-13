@@ -10,6 +10,11 @@ class Medicament(models.Model):
     # nom générique, utile si le patient ne connaît que le générique (ex: "Artéméther-Luméfantrine")
     dci = models.CharField("Dénomination Commune Internationale", max_length=150)
 
+    # séparé du nom pour être sûr qu'il apparaît toujours clairement, pas juste noyé
+    # dans le nom commercial -> évite de confondre deux boîtes de "Paracétamol" à
+    # dosage différent (500mg vs 1000mg), pas juste une question d'étiquette
+    dosage = models.CharField(max_length=50, blank=True, help_text="Ex : 500mg, 1g/5ml")
+
     categorie = models.CharField(max_length=100)  # "Antalgique", "Antipaludique" etc
 
     description = models.TextField(blank=True)
@@ -33,8 +38,10 @@ class Medicament(models.Model):
         ordering = ["nom_commercial"]
 
     def save(self, *args, **kwargs):
-        self.cle_recherche = retirer_accents(f"{self.nom_commercial} {self.dci}")
+        self.cle_recherche = retirer_accents(f"{self.nom_commercial} {self.dci} {self.dosage}")
         super().save(*args, **kwargs)
 
     def __str__(self):
+        if self.dosage:
+            return f"{self.nom_commercial} {self.dosage} ({self.dci})"
         return f"{self.nom_commercial} ({self.dci})"

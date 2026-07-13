@@ -212,7 +212,7 @@
             <div class="alertes-stock">
                 {% for stock in stocks_a_alerter %}
                     <div class="alerte-stock {% if stock.est_en_rupture %}rupture{% else %}faible{% endif %}">
-                        <strong>{{ stock.medicament.nom_commercial }}</strong>
+                        <strong>{{ stock.medicament.nom_commercial }}{% if stock.medicament.dosage %} {{ stock.medicament.dosage }}{% endif %}</strong>
                         {% if stock.est_en_rupture %}
                             — en rupture totale
                         {% else %}
@@ -237,7 +237,7 @@
                         <tr>
                             <td>{{ commande.patient.username }}</td>
                             <td>
-                                {{ commande.stock.medicament.nom_commercial }}
+                                {{ commande.stock.medicament.nom_commercial }}{% if commande.stock.medicament.dosage %} {{ commande.stock.medicament.dosage }}{% endif %}
                                 {% if commande.ordonnance %}
                                     <a class="scelle" href="{{ commande.ordonnance.url }}" target="_blank" rel="noopener">
                                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align: -1px;"><path d="M6 3h9l4 4v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M15 3v4h4" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><line x1="8" y1="12" x2="16" y2="12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><line x1="8" y1="16" x2="13" y2="16" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
@@ -330,7 +330,7 @@
                         {% csrf_token %}
                         <input type="hidden" name="action" value="maj_stock">
                         <input type="hidden" name="stock_id" value="{{ stock.pk }}">
-                        <div class="nom-medicament">{{ stock.medicament.nom_commercial }}</div>
+                        <div class="nom-medicament">{{ stock.medicament.nom_commercial }}{% if stock.medicament.dosage %} {{ stock.medicament.dosage }}{% endif %}</div>
                         <div>
                             <label class="mini">Quantité</label>
                             <input type="number" name="quantite_disponible" value="{{ stock.quantite_disponible }}" min="0">
@@ -358,7 +358,7 @@
                     <select name="medicament_id" required>
                         <option value="">Choisir un médicament...</option>
                         {% for medicament in medicaments_disponibles %}
-                            <option value="{{ medicament.pk }}">{{ medicament.nom_commercial }} ({{ medicament.dci }})</option>
+                            <option value="{{ medicament.pk }}">{{ medicament.nom_commercial }}{% if medicament.dosage %} {{ medicament.dosage }}{% endif %} ({{ medicament.dci }})</option>
                         {% endfor %}
                     </select>
                     <input type="number" name="nouvelle_quantite" placeholder="Quantité" min="0" required>

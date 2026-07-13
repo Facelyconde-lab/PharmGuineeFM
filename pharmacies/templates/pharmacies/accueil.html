@@ -223,6 +223,16 @@
         margin-bottom: 6px;
     }
     .resultat .ligne { font-size: 0.92rem; margin: 3px 0; color: #374151; }
+    .badge-dosage {
+        display: inline-block;
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--bleu);
+        background: #eef2ff;
+        padding: 1px 7px;
+        border-radius: 8px;
+        white-space: nowrap;
+    }
     .resultat .prix { font-weight: 700; color: var(--vert); font-size: 1rem; }
     .resultat .distance {
         display: inline-flex;
@@ -580,6 +590,7 @@
                 // qui vient du serveur pour l'injecter telle quelle dans le HTML.
                 const nomPharmacie = echapperHtml(resultat.pharmacie);
                 const nomMedicament = echapperHtml(resultat.medicament);
+                const dosage = echapperHtml(resultat.dosage);
                 const nomQuartier = echapperHtml(resultat.quartier);
                 // L'image est facultative : certains médicaments n'en ont pas encore.
                 const imageHtml = resultat.image_url
@@ -593,7 +604,7 @@
                         </div>
                         <div class="badge-verifiee">${iconeVerifiee} Officine vérifiée ONPG/DNPM</div>
                         ${resultat.sur_ordonnance ? `<span class="badge-ordonnance">${iconeOrdonnance} Ordonnance requise</span>` : ""}
-                        <div class="ligne">${nomMedicament}</div>
+                        <div class="ligne">${nomMedicament}${dosage ? ` <span class="badge-dosage">${dosage}</span>` : ""}</div>
                         <div class="ligne prix">${resultat.prix_gnf.toLocaleString("fr-FR")} GNF</div>
                         <div class="ligne">Quantité disponible : ${resultat.quantite_disponible}</div>
                         <div class="distance">${iconePosition} ${resultat.distance_km} km</div>

@@ -65,6 +65,7 @@ def recherche_medicament(request):
             "pharmacie": stock.pharmacie.nom,
             "quartier": stock.pharmacie.get_quartier_display(),
             "medicament": stock.medicament.nom_commercial,
+            "dosage": stock.medicament.dosage,
             "image_url": image_url,
             "prix_gnf": stock.prix_unitaire_gnf,
             "quantite_disponible": stock.quantite_disponible,
