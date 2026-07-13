@@ -65,14 +65,33 @@
         padding: 16px;
         margin-bottom: 14px;
         box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-        border-left: 4px solid var(--gris-clair);
     }
-    .commande.statut-en_attente { border-left-color: var(--gris); }
-    .commande.statut-validee { border-left-color: var(--bleu); }
-    .commande.statut-preparee { border-left-color: #E29200; }
-    .commande.statut-en_livraison { border-left-color: #E29200; }
-    .commande.statut-livree { border-left-color: var(--vert); }
-    .commande.statut-annulee { border-left-color: var(--rouge); }
+
+    /* Un panier validé d'un coup peut contenir plusieurs produits, chacun
+       suivi séparément par la pharmacie (un peut être prêt avant l'autre) ->
+       la couleur de statut se met sur chaque ligne-produit, pas sur toute la
+       carte "commande" comme avant. */
+    .ligne-produit {
+        padding: 8px 10px;
+        margin-top: 8px;
+        border-left: 3px solid var(--gris-clair);
+        background: var(--fond);
+        border-radius: 0 6px 6px 0;
+    }
+    .ligne-produit.statut-en_attente { border-left-color: var(--gris); }
+    .ligne-produit.statut-validee { border-left-color: var(--bleu); }
+    .ligne-produit.statut-preparee { border-left-color: #E29200; }
+    .ligne-produit.statut-en_livraison { border-left-color: #E29200; }
+    .ligne-produit.statut-livree { border-left-color: var(--vert); }
+    .ligne-produit.statut-annulee { border-left-color: var(--rouge); }
+    .entete-ligne-produit {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    .nom-produit { font-size: 0.9rem; color: #1F2937; }
 
     .entete-commande {
         display: flex;
@@ -130,34 +149,43 @@
     </a>
     <h2>Mes commandes</h2>
 
-    {% if commandes %}
-        {% for commande in commandes %}
-            <div class="commande statut-{{ commande.statut }}">
+    {% if groupes %}
+        {% for groupe in groupes %}
+            {% with premiere=groupe.lignes.0 %}
+            <div class="commande">
                 <div class="entete-commande">
-                    <h3>{{ commande.stock.medicament.nom_commercial }}</h3>
-                    {% if commande.statut == "en_attente" %}
-                        <span class="badge gris">{{ commande.get_statut_display }}</span>
-                    {% elif commande.statut == "validee" %}
-                        <span class="badge bleu">{{ commande.get_statut_display }}</span>
-                    {% elif commande.statut == "preparee" or commande.statut == "en_livraison" %}
-                        <span class="badge orange">{{ commande.get_statut_display }}</span>
-                    {% elif commande.statut == "livree" %}
-                        <span class="badge vert">{{ commande.get_statut_display }}</span>
-                    {% else %}
-                        <span class="badge rouge">{{ commande.get_statut_display }}</span>
-                    {% endif %}
+                    <h3>{{ premiere.stock.pharmacie.nom }} — {{ premiere.stock.pharmacie.get_quartier_display }}</h3>
                 </div>
-                <div class="ligne"><span class="libelle">Pharmacie :</span> {{ commande.stock.pharmacie.nom }} — {{ commande.stock.pharmacie.get_quartier_display }}</div>
-                <div class="ligne"><span class="libelle">Quantité :</span> {{ commande.quantite }}</div>
-                <div class="ligne"><span class="libelle">Mode :</span> {{ commande.get_mode_livraison_display }}{% if commande.adresse_livraison %} — {{ commande.adresse_livraison }}{% endif %}</div>
-                {% if commande.numero_scelle %}
-                    <span class="scelle">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align: -1px;"><rect x="5" y="11" width="14" height="9" rx="1.5" stroke="currentColor" stroke-width="1.7"/><path d="M8 11V7a4 4 0 0 1 8 0v4" stroke="currentColor" stroke-width="1.7"/></svg>
-                        Scellé : {{ commande.numero_scelle }}
-                    </span>
-                {% endif %}
-                <div class="date">Réservée le {{ commande.date_creation|date:"d/m/Y à H:i" }}</div>
+                <div class="ligne"><span class="libelle">Mode :</span> {{ premiere.get_mode_livraison_display }}{% if premiere.adresse_livraison %} — {{ premiere.adresse_livraison }}{% endif %}</div>
+
+                {% for ligne in groupe.lignes %}
+                    <div class="ligne-produit statut-{{ ligne.statut }}">
+                        <div class="entete-ligne-produit">
+                            <span class="nom-produit">{{ ligne.stock.medicament.nom_commercial }}{% if ligne.stock.medicament.dosage %} {{ ligne.stock.medicament.dosage }}{% endif %} × {{ ligne.quantite }}</span>
+                            {% if ligne.statut == "en_attente" %}
+                                <span class="badge gris">{{ ligne.get_statut_display }}</span>
+                            {% elif ligne.statut == "validee" %}
+                                <span class="badge bleu">{{ ligne.get_statut_display }}</span>
+                            {% elif ligne.statut == "preparee" or ligne.statut == "en_livraison" %}
+                                <span class="badge orange">{{ ligne.get_statut_display }}</span>
+                            {% elif ligne.statut == "livree" %}
+                                <span class="badge vert">{{ ligne.get_statut_display }}</span>
+                            {% else %}
+                                <span class="badge rouge">{{ ligne.get_statut_display }}</span>
+                            {% endif %}
+                        </div>
+                        {% if ligne.numero_scelle %}
+                            <span class="scelle">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align: -1px;"><rect x="5" y="11" width="14" height="9" rx="1.5" stroke="currentColor" stroke-width="1.7"/><path d="M8 11V7a4 4 0 0 1 8 0v4" stroke="currentColor" stroke-width="1.7"/></svg>
+                                Scellé : {{ ligne.numero_scelle }}
+                            </span>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+
+                <div class="date">Réservée le {{ premiere.date_creation|date:"d/m/Y à H:i" }}</div>
             </div>
+            {% endwith %}
         {% endfor %}
     {% else %}
         <div class="vide">Tu n'as encore réservé aucun médicament. Retourne à la recherche pour en trouver un près de toi.</div>

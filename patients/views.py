@@ -1,3 +1,5 @@
+import itertools
+
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
@@ -43,4 +45,14 @@ def mes_commandes(request):
         .select_related("stock__pharmacie", "stock__medicament")
         .order_by("-date_creation")
     )
-    return render(request, "patients/mes_commandes.html", {"commandes": commandes})
+    # un panier validé d'un coup crée plusieurs Commande (une par produit) qui
+    # partagent le même groupe_commande -> on les regroupe ici pour les afficher
+    # comme une seule commande à plusieurs lignes plutôt que N réservations
+    # séparées. groupby marche seulement sur des éléments déjà côte à côte, ce
+    # qui est le cas ici : les lignes d'un même panier sont créées à la suite,
+    # donc adjacentes une fois triées par -date_creation.
+    groupes = [
+        {"id": cle, "lignes": list(lignes)}
+        for cle, lignes in itertools.groupby(commandes, key=lambda c: c.groupe_commande)
+    ]
+    return render(request, "patients/mes_commandes.html", {"groupes": groupes})

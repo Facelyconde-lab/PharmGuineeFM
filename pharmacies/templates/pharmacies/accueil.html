@@ -332,6 +332,24 @@
     .resultat .bouton-reserver:hover { opacity: 0.9; }
     .resultat .bouton-reserver:disabled { background: #A3A3A3; cursor: default; }
 
+    .ligne-quantite {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 10px;
+        font-size: 0.88rem;
+        color: #374151;
+    }
+    .champ-quantite {
+        width: 64px;
+        padding: 8px 10px;
+        font-size: 0.95rem;
+        border: 1px solid var(--gris-clair);
+        border-radius: 8px;
+        background: var(--fond);
+    }
+    .champ-quantite:focus { outline: none; border-color: var(--vert); background: white; }
+
     #message { font-size: 0.9rem; color: var(--gris); margin-top: 10px; text-align: center; }
 
     footer {
@@ -340,6 +358,107 @@
         color: var(--gris);
         padding: 24px 16px 32px;
     }
+
+    /* Barre fixe en bas d'écran, visible seulement quand le panier n'est pas
+       vide -> rappel discret sans gêner la recherche/le défilement. */
+    .barre-panier {
+        display: none;
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 20;
+        background: var(--vert-fonce);
+        color: white;
+        padding: 12px 16px;
+        box-shadow: 0 -2px 8px rgba(0,0,0,0.15);
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        cursor: pointer;
+    }
+    .barre-panier.visible { display: flex; }
+    .barre-panier .resume { font-size: 0.9rem; font-weight: 600; }
+    .barre-panier .voir { font-size: 0.85rem; text-decoration: underline; white-space: nowrap; }
+
+    .fond-panneau {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.45);
+        z-index: 30;
+    }
+    .fond-panneau.visible { display: block; }
+    .panneau-panier {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 31;
+        background: white;
+        border-radius: 16px 16px 0 0;
+        max-height: 85vh;
+        overflow-y: auto;
+        padding: 18px 16px 24px;
+    }
+    .entete-panneau {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 14px;
+    }
+    .entete-panneau h2 { margin: 0; font-size: 1.15rem; color: var(--bleu); }
+    .bouton-fermer-panneau {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: var(--gris);
+        padding: 4px;
+    }
+    .ligne-panier {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--gris-clair);
+    }
+    .ligne-panier .details { flex: 1; min-width: 0; }
+    .ligne-panier .nom { font-size: 0.92rem; font-weight: 600; color: #1F2937; }
+    .ligne-panier .sous-info { font-size: 0.8rem; color: var(--gris); margin-top: 2px; }
+    .ligne-panier .champ-quantite { width: 56px; }
+    .bouton-retirer {
+        background: none;
+        border: none;
+        color: var(--rouge, #B00020);
+        cursor: pointer;
+        padding: 4px;
+        flex-shrink: 0;
+    }
+    .total-panier {
+        display: flex;
+        justify-content: space-between;
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--vert-fonce);
+        padding: 14px 0 4px;
+    }
+    .bouton-valider-panier {
+        display: block;
+        width: 100%;
+        margin-top: 14px;
+        padding: 13px;
+        font-size: 1rem;
+        font-weight: 700;
+        background: var(--vert);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        min-height: 46px;
+    }
+    .bouton-valider-panier:hover { background: var(--vert-fonce); }
+    .bouton-valider-panier:disabled { background: #A3A3A3; cursor: default; }
 
     /* À partir d'un écran de tablette, la photo se place à côté du texte
        plutôt qu'au-dessus : meilleure utilisation de l'espace horizontal. */
@@ -424,6 +543,44 @@
 
 <footer>PharmaSila Guinée, Conakry 2026</footer>
 
+{% if user.is_authenticated %}
+<div class="barre-panier" id="barre-panier">
+    <span class="resume" id="resume-panier"></span>
+    <span class="voir">Voir le panier</span>
+</div>
+
+<div class="fond-panneau" id="fond-panneau"></div>
+<div class="panneau-panier" id="panneau-panier" style="display:none;">
+    <div class="entete-panneau">
+        <h2>Mon panier</h2>
+        <button class="bouton-fermer-panneau" id="bouton-fermer-panneau" aria-label="Fermer">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+    </div>
+    <div id="pharmacie-panier" class="sous-info" style="margin-bottom:8px;"></div>
+    <div id="lignes-panier"></div>
+    <div class="total-panier"><span>Total</span><span id="total-panier">0 GNF</span></div>
+
+    <div class="choix-livraison" id="choix-livraison-panier">
+        <label>
+            <input type="radio" name="livraison-panier" value="retrait" checked>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="9" width="16" height="11" rx="1.5" stroke="currentColor" stroke-width="1.7"/><path d="M4 9l2-5h12l2 5" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><line x1="12" y1="13" x2="12" y2="17" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><line x1="10" y1="15" x2="14" y2="15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+            Retrait
+        </label>
+        <label>
+            <input type="radio" name="livraison-panier" value="livraison">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="8" width="11" height="9" rx="1" stroke="currentColor" stroke-width="1.7"/><path d="M13 11h4l4 3.5V17h-8" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="6.5" cy="18.5" r="1.6" stroke="currentColor" stroke-width="1.6"/><circle cx="16.5" cy="18.5" r="1.6" stroke="currentColor" stroke-width="1.6"/></svg>
+            Livraison
+        </label>
+    </div>
+    <input type="text" class="champ-adresse" id="champ-adresse-panier" placeholder="Quartier + repère pour la livraison" style="display:none;">
+
+    <div id="message-panier" style="font-size:0.85rem; color: var(--rouge, #B00020); margin-top:8px;"></div>
+
+    <button class="bouton-valider-panier" id="bouton-valider-panier">Valider ma réservation</button>
+</div>
+{% endif %}
+
 <script>
     const estConnecte = {{ user.is_authenticated|yesno:"true,false" }};
 
@@ -454,70 +611,186 @@
         return div.innerHTML;
     }
 
-    async function reserver(stockId, bouton, carte) {
-        // Le mode de livraison choisi (retrait ou livraison) est lu sur la
-        // carte au moment du clic, pour ne pas dépendre d'un état global qui
-        // mélangerait les choix de plusieurs résultats affichés en même temps.
-        const choixCoche = carte.querySelector(`input[name="livraison-${stockId}"]:checked`);
-        const modeLivraison = choixCoche ? choixCoche.value : "retrait";
-        const champAdresse = carte.querySelector(".champ-adresse");
-        const adresseLivraison = champAdresse ? champAdresse.value.trim() : "";
+    // --- Panier -----------------------------------------------------------
+    // Un panier = les produits d'UNE SEULE pharmacie (logique : une commande
+    // groupée part d'une seule officine, pour le retrait/la livraison). Reste
+    // en mémoire le temps de la page ; pas besoin de le garder après un
+    // rechargement, la recherche est rapide à refaire.
+    let panier = []; // { stockId, pharmacieId, pharmacieNom, medicament, dosage, prix, quantite, quantiteDisponible, surOrdonnance, fichierOrdonnance }
 
-        if (modeLivraison === "livraison" && !adresseLivraison) {
-            alert("Merci d'indiquer une adresse (quartier + repère) pour la livraison.");
+    const barrePanier = document.getElementById("barre-panier");
+    const resumePanier = document.getElementById("resume-panier");
+    const fondPanneau = document.getElementById("fond-panneau");
+    const panneauPanier = document.getElementById("panneau-panier");
+    const lignesPanierDiv = document.getElementById("lignes-panier");
+    const pharmaciePanierDiv = document.getElementById("pharmacie-panier");
+    const totalPanierSpan = document.getElementById("total-panier");
+    const messagePanierDiv = document.getElementById("message-panier");
+    const boutonValiderPanier = document.getElementById("bouton-valider-panier");
+
+    function totalPanierGnf() {
+        return panier.reduce((somme, l) => somme + l.prix * l.quantite, 0);
+    }
+
+    // Redessine la barre du bas + le panneau détaillé à chaque changement du
+    // panier (ajout, suppression, changement de quantité) : plus simple et
+    // plus fiable que de patcher le DOM ligne par ligne à la main.
+    function majAffichagePanier() {
+        if (panier.length === 0) {
+            barrePanier.classList.remove("visible");
+            fermerPanneauPanier();
             return;
         }
 
-        // Le champ ordonnance n'existe dans le DOM que pour les médicaments
-        // marqués "sur ordonnance" (voir sur_ordonnance renvoyé par l'API).
-        const champOrdonnance = carte.querySelector(".champ-ordonnance");
-        const fichierOrdonnance = champOrdonnance && champOrdonnance.files.length > 0
-            ? champOrdonnance.files[0]
-            : null;
+        barrePanier.classList.add("visible");
+        const nbArticles = panier.reduce((s, l) => s + l.quantite, 0);
+        resumePanier.textContent = `${nbArticles} article(s) · ${totalPanierGnf().toLocaleString("fr-FR")} GNF`;
 
-        if (champOrdonnance && !fichierOrdonnance) {
-            alert("Ce médicament est sur ordonnance : merci de joindre une photo de l'ordonnance.");
-            return;
-        }
+        pharmaciePanierDiv.textContent = `Pharmacie : ${panier[0].pharmacieNom}`;
 
-        // FormData plutôt que JSON : nécessaire pour pouvoir joindre un fichier
-        // (photo d'ordonnance) dans la même requête que le reste des données.
-        const donneesEnvoyees = new FormData();
-        donneesEnvoyees.append("stock", stockId);
-        donneesEnvoyees.append("quantite", 1);
-        donneesEnvoyees.append("mode_livraison", modeLivraison);
-        donneesEnvoyees.append("adresse_livraison", adresseLivraison);
-        if (fichierOrdonnance) {
-            donneesEnvoyees.append("ordonnance", fichierOrdonnance);
-        }
-
-        bouton.disabled = true;
-        bouton.textContent = "Réservation en cours...";
-        try {
-            const reponse = await fetch("/api/commandes/", {
-                method: "POST",
-                headers: {
-                    // Pas de Content-Type ici : le navigateur le fixe lui-même
-                    // avec la bonne "boundary" multipart quand on envoie un FormData.
-                    "X-CSRFToken": lireCookie("csrftoken"),
-                },
-                credentials: "same-origin",
-                body: donneesEnvoyees,
+        lignesPanierDiv.innerHTML = "";
+        panier.forEach((ligne) => {
+            const div = document.createElement("div");
+            div.className = "ligne-panier";
+            div.innerHTML = `
+                <div class="details">
+                    <div class="nom">${echapperHtml(ligne.medicament)}${ligne.dosage ? ` <span class="badge-dosage">${echapperHtml(ligne.dosage)}</span>` : ""}</div>
+                    <div class="sous-info">${ligne.prix.toLocaleString("fr-FR")} GNF / unité</div>
+                </div>
+                <input type="number" class="champ-quantite" min="1" max="${ligne.quantiteDisponible}" value="${ligne.quantite}">
+                <button class="bouton-retirer" aria-label="Retirer">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-8 0v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+            `;
+            div.querySelector(".champ-quantite").addEventListener("change", (e) => {
+                const valeur = Math.max(1, Math.min(parseInt(e.target.value || "1", 10), ligne.quantiteDisponible));
+                ligne.quantite = valeur;
+                majAffichagePanier();
             });
-            const donnees = await reponse.json();
+            div.querySelector(".bouton-retirer").addEventListener("click", () => {
+                panier = panier.filter((l) => l.stockId !== ligne.stockId);
+                majAffichagePanier();
+            });
+            lignesPanierDiv.appendChild(div);
+        });
 
-            if (reponse.ok) {
-                bouton.textContent = "Réservé !";
-            } else {
-                bouton.disabled = false;
-                bouton.textContent = "Réserver";
-                alert(donnees.detail || JSON.stringify(donnees));
-            }
-        } catch (erreur) {
-            bouton.disabled = false;
-            bouton.textContent = "Réserver";
-            alert("Impossible de contacter le serveur.");
+        totalPanierSpan.textContent = `${totalPanierGnf().toLocaleString("fr-FR")} GNF`;
+    }
+
+    // Ajoute (ou met à jour) une ligne du panier. Refuse de mélanger deux
+    // pharmacies dans le même panier : une commande groupée part d'une seule
+    // officine, sinon la logique de retrait/livraison n'a plus de sens.
+    function ajouterAuPanier(resultat, quantite, fichierOrdonnance) {
+        if (panier.length > 0 && panier[0].pharmacieId !== resultat.pharmacie_id) {
+            const remplacer = confirm(
+                "Ton panier contient déjà des produits d'une autre pharmacie. " +
+                "Le vider pour ajouter celui-ci à la place ?"
+            );
+            if (!remplacer) return false;
+            panier = [];
         }
+
+        const existant = panier.find((l) => l.stockId === resultat.stock_id);
+        if (existant) {
+            existant.quantite = Math.min(quantite, resultat.quantite_disponible);
+            if (fichierOrdonnance) existant.fichierOrdonnance = fichierOrdonnance;
+        } else {
+            panier.push({
+                stockId: resultat.stock_id,
+                pharmacieId: resultat.pharmacie_id,
+                pharmacieNom: resultat.pharmacie,
+                medicament: resultat.medicament,
+                dosage: resultat.dosage,
+                prix: resultat.prix_gnf,
+                quantite,
+                quantiteDisponible: resultat.quantite_disponible,
+                surOrdonnance: resultat.sur_ordonnance,
+                fichierOrdonnance: fichierOrdonnance || null,
+            });
+        }
+        majAffichagePanier();
+        return true;
+    }
+
+    function ouvrirPanneauPanier() {
+        fondPanneau.classList.add("visible");
+        panneauPanier.style.display = "block";
+    }
+    function fermerPanneauPanier() {
+        fondPanneau.classList.remove("visible");
+        panneauPanier.style.display = "none";
+    }
+    if (barrePanier) barrePanier.addEventListener("click", ouvrirPanneauPanier);
+    if (fondPanneau) fondPanneau.addEventListener("click", fermerPanneauPanier);
+    const boutonFermerPanneau = document.getElementById("bouton-fermer-panneau");
+    if (boutonFermerPanneau) boutonFermerPanneau.addEventListener("click", fermerPanneauPanier);
+
+    const champAdressePanier = document.getElementById("champ-adresse-panier");
+    const radiosLivraisonPanier = document.querySelectorAll('input[name="livraison-panier"]');
+    radiosLivraisonPanier.forEach((radio) => {
+        radio.addEventListener("change", () => {
+            champAdressePanier.style.display = radio.value === "livraison" ? "block" : "none";
+        });
+    });
+
+    if (boutonValiderPanier) {
+        boutonValiderPanier.addEventListener("click", async () => {
+            messagePanierDiv.textContent = "";
+
+            const choixCoche = document.querySelector('input[name="livraison-panier"]:checked');
+            const modeLivraison = choixCoche ? choixCoche.value : "retrait";
+            const adresseLivraison = champAdressePanier.value.trim();
+
+            if (modeLivraison === "livraison" && !adresseLivraison) {
+                messagePanierDiv.textContent = "Merci d'indiquer une adresse (quartier + repère) pour la livraison.";
+                return;
+            }
+            const ligneSansOrdonnance = panier.find((l) => l.surOrdonnance && !l.fichierOrdonnance);
+            if (ligneSansOrdonnance) {
+                messagePanierDiv.textContent =
+                    `"${ligneSansOrdonnance.medicament}" est sur ordonnance : joins d'abord sa photo depuis la carte du produit, puis rajoute-le au panier.`;
+                return;
+            }
+
+            const donneesEnvoyees = new FormData();
+            donneesEnvoyees.append(
+                "lignes",
+                JSON.stringify(panier.map((l) => ({ stock_id: l.stockId, quantite: l.quantite })))
+            );
+            donneesEnvoyees.append("mode_livraison", modeLivraison);
+            donneesEnvoyees.append("adresse_livraison", adresseLivraison);
+            panier.forEach((ligne, index) => {
+                if (ligne.fichierOrdonnance) {
+                    donneesEnvoyees.append(`ordonnance_${index}`, ligne.fichierOrdonnance);
+                }
+            });
+
+            boutonValiderPanier.disabled = true;
+            boutonValiderPanier.textContent = "Validation en cours...";
+            try {
+                const reponse = await fetch("/api/commandes/panier/", {
+                    method: "POST",
+                    headers: { "X-CSRFToken": lireCookie("csrftoken") },
+                    credentials: "same-origin",
+                    body: donneesEnvoyees,
+                });
+                const donnees = await reponse.json();
+
+                if (reponse.ok) {
+                    panier = [];
+                    fermerPanneauPanier();
+                    messageDiv.textContent = "Réservation confirmée ! Retrouve le suivi dans « Mes commandes ».";
+                } else {
+                    messagePanierDiv.textContent = donnees.erreur || "Une erreur est survenue.";
+                }
+            } catch (erreur) {
+                messagePanierDiv.textContent = "Impossible de contacter le serveur. Réessaie dans un instant.";
+            } finally {
+                boutonValiderPanier.disabled = false;
+                boutonValiderPanier.textContent = "Valider ma réservation";
+                majAffichagePanier();
+            }
+        });
     }
 
     let latitude = 9.535;
@@ -609,17 +882,10 @@
                         <div class="ligne">Quantité disponible : ${resultat.quantite_disponible}</div>
                         <div class="distance">${iconePosition} ${resultat.distance_km} km</div>
                         ${estConnecte ? `
-                        <div class="choix-livraison">
-                            <label>
-                                <input type="radio" name="livraison-${resultat.stock_id}" value="retrait" checked>
-                                ${iconeRetrait} Retrait
-                            </label>
-                            <label>
-                                <input type="radio" name="livraison-${resultat.stock_id}" value="livraison">
-                                ${iconeLivraison} Livraison
-                            </label>
+                        <div class="ligne-quantite">
+                            <label for="qte-${resultat.stock_id}">Quantité</label>
+                            <input type="number" id="qte-${resultat.stock_id}" class="champ-quantite" min="1" max="${resultat.quantite_disponible}" value="1">
                         </div>
-                        <input type="text" class="champ-adresse" placeholder="Quartier + repère pour la livraison" style="display:none;">
                         ${resultat.sur_ordonnance ? `
                         <div class="bloc-ordonnance">
                             <label>${iconeOrdonnance} Photo de l'ordonnance (obligatoire pour ce médicament)</label>
@@ -633,16 +899,28 @@
                 const bouton = document.createElement("button");
                 bouton.className = "bouton-reserver";
                 if (estConnecte) {
-                    bouton.textContent = "Réserver";
-                    bouton.addEventListener("click", () => reserver(resultat.stock_id, bouton, carte));
+                    bouton.textContent = "Ajouter au panier";
+                    bouton.addEventListener("click", () => {
+                        const champQuantite = carte.querySelector(".champ-quantite");
+                        const quantite = Math.max(1, Math.min(
+                            parseInt(champQuantite.value || "1", 10),
+                            resultat.quantite_disponible
+                        ));
 
-                    // Le champ d'adresse n'apparaît que si "Livraison" est choisi :
-                    // inutile de le montrer pour un retrait en pharmacie.
-                    const champAdresse = carte.querySelector(".champ-adresse");
-                    carte.querySelectorAll(`input[name="livraison-${resultat.stock_id}"]`).forEach((radio) => {
-                        radio.addEventListener("change", () => {
-                            champAdresse.style.display = radio.value === "livraison" ? "block" : "none";
-                        });
+                        const champOrdonnance = carte.querySelector(".champ-ordonnance");
+                        const fichierOrdonnance = champOrdonnance && champOrdonnance.files.length > 0
+                            ? champOrdonnance.files[0]
+                            : null;
+                        if (champOrdonnance && !fichierOrdonnance) {
+                            alert("Ce médicament est sur ordonnance : merci de joindre une photo de l'ordonnance avant de l'ajouter au panier.");
+                            return;
+                        }
+
+                        const ajoute = ajouterAuPanier(resultat, quantite, fichierOrdonnance);
+                        if (ajoute) {
+                            bouton.textContent = "Ajouté ✓";
+                            setTimeout(() => { bouton.textContent = "Ajouter au panier"; }, 1200);
+                        }
                     });
                 } else {
                     bouton.textContent = "Se connecter pour réserver";

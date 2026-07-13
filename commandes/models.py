@@ -1,3 +1,5 @@
+import uuid
+
 from django.db import models
 from django.conf import settings
 from pharmacies.models import Stock
@@ -44,6 +46,12 @@ class Commande(models.Model):
         blank=True,
         help_text="Quartier + repère (ex: Dixinn, près de la pharmacie Bonfi), requis pour une livraison à domicile.",
     )
+
+    # un panier validé d'un coup peut contenir plusieurs produits -> chaque
+    # produit reste sa propre Commande (statut suivi indépendamment par la
+    # pharmacie), mais toutes partagent ce même identifiant pour être affichées
+    # groupées côté patient (une seule commande visible avec plusieurs lignes)
+    groupe_commande = models.UUIDField(default=uuid.uuid4, editable=False, db_index=True)
 
     date_creation = models.DateTimeField(auto_now_add=True)
     date_mise_a_jour = models.DateTimeField(auto_now=True)

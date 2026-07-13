@@ -63,6 +63,7 @@ def recherche_medicament(request):
         donnees.append({
             "stock_id": stock.pk,
             "pharmacie": stock.pharmacie.nom,
+            "pharmacie_id": stock.pharmacie_id,  # pour vérifier côté front que le panier vient bien d'une seule pharmacie
             "quartier": stock.pharmacie.get_quartier_display(),
             "medicament": stock.medicament.nom_commercial,
             "dosage": stock.medicament.dosage,
