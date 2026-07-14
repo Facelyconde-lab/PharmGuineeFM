@@ -587,6 +587,8 @@
         {% if user.is_staff %}
             <span>·</span>
             <a href="{% url 'ministere:tableau_de_bord' %}">Tableau de bord ministère</a>
+            <span>·</span>
+            <a href="{% url 'patients:visiteurs' %}">Visiteurs du site</a>
         {% endif %}
         <span>·</span>
         <a href="{% url 'patients:deconnexion' %}">Se déconnecter</a>

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Visiteurs du site — PharmaSila Guinée</title>
+<style>
+    :root {
+        --vert: #1F6E43;
+        --vert-fonce: #17532E;
+        --vert-clair: #E3F1E9;
+        --bleu: #1F4E79;
+        --bleu-clair: #E8EEF4;
+        --rouge: #B00020;
+        --rouge-clair: #FCE8E6;
+        --gris: #6B7280;
+        --gris-clair: #E5E7EB;
+        --fond: #F4F7F6;
+    }
+    * { box-sizing: border-box; }
+    body {
+        font-family: -apple-system, "Segoe UI", Arial, sans-serif;
+        margin: 0;
+        background: var(--fond);
+        color: #1F2937;
+        -webkit-font-smoothing: antialiased;
+    }
+    header {
+        background: linear-gradient(135deg, var(--vert), var(--vert-fonce));
+        color: white;
+        padding: 22px 16px;
+        text-align: center;
+    }
+    .logo-ligne { display: flex; align-items: center; justify-content: center; gap: 8px; }
+    header h1 { margin: 0; font-size: 1.3rem; }
+    header p { margin: 6px 0 0; font-size: 0.85rem; opacity: 0.9; }
+    header a { color: white; }
+
+    main { max-width: 960px; margin: 0 auto; padding: 20px 16px 48px; }
+
+    .lien-retour {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.85rem;
+        color: var(--gris);
+        text-decoration: none;
+        margin-bottom: 16px;
+    }
+    .lien-retour:hover { color: var(--bleu); }
+
+    section { margin-bottom: 32px; }
+    section h2 {
+        font-size: 1.05rem;
+        color: var(--vert-fonce);
+        border-bottom: 2px solid var(--gris-clair);
+        padding-bottom: 8px;
+        margin-bottom: 14px;
+    }
+    .sous-titre {
+        color: var(--gris);
+        font-size: 0.85rem;
+        margin: -10px 0 14px;
+    }
+
+    .cartes {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 12px;
+    }
+    .carte {
+        background: white;
+        border-radius: 10px;
+        padding: 16px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .carte .chiffre { font-size: 1.7rem; font-weight: 700; color: var(--vert-fonce); line-height: 1.1; }
+    .carte .libelle { font-size: 0.8rem; color: var(--gris); margin-top: 4px; }
+
+    .grille-graphes {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 16px;
+        margin-bottom: 18px;
+    }
+    .carte-graphe {
+        background: white;
+        border-radius: 10px;
+        padding: 16px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .carte-graphe h3 {
+        margin: 0 0 12px;
+        font-size: 0.85rem;
+        color: var(--gris);
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+    .zone-graphe { position: relative; height: 220px; }
+
+    .scroll-horizontal {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        border-radius: 10px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    table { width: 100%; border-collapse: collapse; background: white; min-width: 420px; }
+    th, td { text-align: left; padding: 11px 12px; font-size: 0.87rem; border-bottom: 1px solid var(--gris-clair); }
+    th { background: #F0F2F1; color: var(--gris); font-weight: 600; font-size: 0.78rem; text-transform: uppercase; }
+    tr:last-child td { border-bottom: none; }
+
+    .badge {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 10px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+    .badge.vert { background: var(--vert-clair); color: var(--vert-fonce); }
+    .badge.bleu { background: var(--bleu-clair); color: var(--bleu); }
+    .badge.gris { background: var(--gris-clair); color: var(--gris); }
+
+    .vide { color: var(--gris); font-size: 0.9rem; font-style: italic; margin: 0; padding: 16px; background: white; border-radius: 10px; }
+
+    .note-confidentialite {
+        background: var(--bleu-clair);
+        border-left: 4px solid var(--bleu);
+        border-radius: 8px;
+        padding: 12px 16px;
+        font-size: 0.83rem;
+        color: #1F3A52;
+    }
+</style>
+</head>
+<body>
+
+<header>
+    <div class="logo-ligne">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 21s-7-4.35-9.5-9C.7 8.1 2.2 4.5 5.6 4c2-.3 3.6.6 4.4 2 .8-1.4 2.4-2.3 4.4-2 3.4.5 4.9 4.1 3.1 8-2.5 4.65-9.5 9-9.5 9Z" stroke="white" stroke-width="1.6" stroke-linejoin="round"/>
+        </svg>
+        <h1>Visiteurs du site</h1>
+    </div>
+    <p>Qui utilise PharmaSila · <a href="{% url 'accueil' %}">Retour à la recherche publique</a></p>
+</header>
+
+<main>
+    <a class="lien-retour" href="{% url 'accueil' %}">&larr; Retour à l'accueil</a>
+
+    <section>
+        <h2>Comptes créés</h2>
+        <div class="cartes">
+            <div class="carte">
+                <div class="chiffre">{{ total_comptes }}</div>
+                <div class="libelle">Comptes au total</div>
+            </div>
+            <div class="carte">
+                <div class="chiffre">{{ total_patients }}</div>
+                <div class="libelle">Patients</div>
+            </div>
+            <div class="carte">
+                <div class="chiffre">{{ total_pharmaciens }}</div>
+                <div class="libelle">Pharmaciens</div>
+            </div>
+            <div class="carte">
+                <div class="chiffre">{{ total_staff }}</div>
+                <div class="libelle">Staff / ministère</div>
+            </div>
+            <div class="carte">
+                <div class="chiffre">{{ nouveaux_comptes_7j }}</div>
+                <div class="libelle">Nouveaux comptes (7 derniers jours)</div>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <h2>Connectés en ce moment ({{ utilisateurs_connectes|length }})</h2>
+        <p class="sous-titre">
+            Basé sur les sessions encore valides côté serveur - une approximation de qui est présent, pas un compteur seconde par seconde.
+        </p>
+        {% if utilisateurs_connectes %}
+            <div class="scroll-horizontal">
+                <table>
+                    <thead>
+                        <tr><th>Utilisateur</th><th>Rôle</th></tr>
+                    </thead>
+                    <tbody>
+                    {% for entree in utilisateurs_connectes %}
+                        <tr>
+                            <td>{{ entree.utilisateur.username }}</td>
+                            <td>
+                                {% if entree.role == "Ministère / staff" %}
+                                    <span class="badge bleu">{{ entree.role }}</span>
+                                {% elif entree.role == "Pharmacien" %}
+                                    <span class="badge gris">{{ entree.role }}</span>
+                                {% else %}
+                                    <span class="badge vert">{{ entree.role }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="vide">Personne n'a de session active pour le moment.</p>
+        {% endif %}
+    </section>
+
+    <section>
+        <h2>Recherches de médicaments</h2>
+        <p class="sous-titre">
+            Chaque recherche sur la page d'accueil compte, connecté ou pas - aucune adresse IP ni terme recherché n'est conservé, seulement une session anonyme le cas échéant.
+        </p>
+        <div class="cartes">
+            <div class="carte">
+                <div class="chiffre">{{ total_recherches }}</div>
+                <div class="libelle">Recherches au total</div>
+            </div>
+            <div class="carte">
+                <div class="chiffre">{{ recherches_connectees }}</div>
+                <div class="libelle">Par des comptes connectés</div>
+            </div>
+            <div class="carte">
+                <div class="chiffre">{{ recherches_anonymes }}</div>
+                <div class="libelle">Sans compte (anonymes)</div>
+            </div>
+            <div class="carte">
+                <div class="chiffre">{{ visiteurs_anonymes_uniques }}</div>
+                <div class="libelle">Visiteurs anonymes uniques</div>
+            </div>
+        </div>
+
+        <div class="grille-graphes" style="margin-top: 16px;">
+            <div class="carte-graphe">
+                <h3>Recherches des 7 derniers jours</h3>
+                <div class="zone-graphe"><canvas id="grapheTendance"></canvas></div>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <p class="note-confidentialite">
+            Confidentialité : cette page compte des visites, elle ne stocke ni terme recherché ni adresse IP. Un visiteur anonyme n'est identifié que par sa session de navigateur, ce qui permet de savoir « combien de personnes » sans savoir précisément « qui cherche quoi ».
+        </p>
+    </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script>
+    Chart.defaults.font.family = "-apple-system, 'Segoe UI', Arial, sans-serif";
+    Chart.defaults.font.size = 11.5;
+
+    new Chart(document.getElementById("grapheTendance"), {
+        type: "line",
+        data: {
+            labels: [{% for ligne in tendance_recherches %}"{{ ligne.jour }}",{% endfor %}],
+            datasets: [{
+                label: "Recherches",
+                data: [{% for ligne in tendance_recherches %}{{ ligne.total }},{% endfor %}],
+                borderColor: "#1F6E43",
+                backgroundColor: "rgba(31, 110, 67, 0.12)",
+                fill: true,
+                tension: 0.3,
+                pointRadius: 3,
+            }],
+        },
+        options: {
+            maintainAspectRatio: false,
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
+        },
+    });
+</script>
+
+</body>
+</html>

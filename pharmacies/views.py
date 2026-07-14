@@ -12,6 +12,7 @@ from commandes.models import Commande
 from commandes.notifications import envoyer_notification_statut
 from medicaments.models import Medicament
 from medicaments.utils import retirer_accents
+from patients.models import VisiteRecherche
 from .models import Pharmacie, Stock
 
 
@@ -41,6 +42,16 @@ def recherche_medicament(request):
         lng_patient = float(lng_param)
     except ValueError:
         return Response({"erreur": "'lat' et 'lng' doivent être des nombres."}, status=400)
+
+    # une ligne par recherche, connecté ou pas -> sert juste à savoir combien
+    # de monde utilise le site (page /patients/visiteurs/), pas de suivi
+    # individuel plus poussé que ça (pas d'IP stockée)
+    if not request.session.session_key:
+        request.session.create()
+    VisiteRecherche.objects.create(
+        patient=request.user if request.user.is_authenticated else None,
+        session_key=request.session.session_key,
+    )
 
     # stock dispo + pharmacie vérifiée uniquement. cle_recherche = sans accents,
     # comparé à retirer_accents(nom) pour que "paracetamol" trouve "Paracétamol"
