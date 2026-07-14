@@ -222,6 +222,26 @@
         white-space: nowrap;
         margin-bottom: 6px;
     }
+    /* Pharmacie déjà présente dans le panier -> ressort visuellement en tête
+       de liste, pour que le patient regroupe facilement ses achats. */
+    .resultat.deja-panier {
+        border-left-color: var(--bleu);
+        background: #F3F7FC;
+    }
+    .badge-panier {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--bleu);
+        background: var(--bleu-clair, #E8EEF4);
+        padding: 2px 8px;
+        border-radius: 10px;
+        white-space: nowrap;
+        margin-bottom: 6px;
+        margin-left: 6px;
+    }
     .resultat .ligne { font-size: 0.92rem; margin: 3px 0; color: #374151; }
     .badge-dosage {
         display: inline-block;
@@ -854,9 +874,23 @@
                 return;
             }
 
+            // Si le panier contient déjà des produits d'une pharmacie, on remonte
+            // cette pharmacie en tête de liste ici si elle a aussi ce produit :
+            // évite au patient de la chercher manuellement dans les résultats
+            // pour savoir s'il peut tout regrouper dans la même commande.
+            const pharmacieDuPanier = panier.length > 0 ? panier[0].pharmacieId : null;
+            if (pharmacieDuPanier !== null) {
+                donnees.sort((a, b) => {
+                    if (a.pharmacie_id === pharmacieDuPanier) return -1;
+                    if (b.pharmacie_id === pharmacieDuPanier) return 1;
+                    return 0;
+                });
+            }
+
             donnees.forEach((resultat) => {
                 const carte = document.createElement("div");
-                carte.className = "resultat";
+                const dansLePanier = resultat.pharmacie_id === pharmacieDuPanier;
+                carte.className = dansLePanier ? "resultat deja-panier" : "resultat";
                 // Toute valeur texte venant de l'API (nom de pharmacie, de médicament,
                 // URL d'image) passe par echapperHtml() avant d'être insérée : ces noms
                 // sont saisis via l'admin, mais on ne fait jamais confiance à une donnée
@@ -876,6 +910,7 @@
                             <h3>${nomPharmacie} — ${nomQuartier}</h3>
                         </div>
                         <div class="badge-verifiee">${iconeVerifiee} Officine vérifiée ONPG/DNPM</div>
+                        ${dansLePanier ? `<span class="badge-panier">${iconeVerifiee} Déjà dans ton panier</span>` : ""}
                         ${resultat.sur_ordonnance ? `<span class="badge-ordonnance">${iconeOrdonnance} Ordonnance requise</span>` : ""}
                         <div class="ligne">${nomMedicament}${dosage ? ` <span class="badge-dosage">${dosage}</span>` : ""}</div>
                         <div class="ligne prix">${resultat.prix_gnf.toLocaleString("fr-FR")} GNF</div>
