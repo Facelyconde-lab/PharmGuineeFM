@@ -140,6 +140,70 @@
         margin: 4px 4px 14px;
     }
 
+    .barre-filtres {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 12px;
+        font-size: 0.85rem;
+    }
+    .tri-boutons { display: flex; align-items: center; gap: 6px; }
+    .libelle-tri { color: var(--gris); margin-right: 2px; }
+    .bouton-tri {
+        padding: 5px 12px;
+        font-size: 0.82rem;
+        font-weight: 600;
+        border: 1px solid var(--gris-clair);
+        border-radius: 14px;
+        background: white;
+        color: var(--gris);
+        cursor: pointer;
+    }
+    .bouton-tri.actif {
+        background: var(--vert-clair);
+        border-color: var(--vert);
+        color: var(--vert-fonce);
+    }
+    .filtre-garde {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        color: #374151;
+        cursor: pointer;
+    }
+    .filtre-garde input { accent-color: var(--vert); }
+
+    .badge-meilleur-prix {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: #8A5A00;
+        background: #FFF4E0;
+        padding: 2px 8px;
+        border-radius: 10px;
+        white-space: nowrap;
+        margin-bottom: 6px;
+        margin-left: 6px;
+    }
+    .badge-garde {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: #6B21A8;
+        background: #F3E8FF;
+        padding: 2px 8px;
+        border-radius: 10px;
+        white-space: nowrap;
+        margin-bottom: 6px;
+        margin-left: 6px;
+    }
+
     .etat-vide {
         text-align: center;
         color: var(--gris);
@@ -557,6 +621,18 @@
         <div>Recherchez un médicament ci-dessus pour voir les pharmacies qui l'ont en stock près de vous.</div>
     </div>
 
+    <div id="barre-filtres" class="barre-filtres" style="display:none;">
+        <div class="tri-boutons">
+            <span class="libelle-tri">Trier :</span>
+            <button type="button" class="bouton-tri actif" data-tri="distance">Distance</button>
+            <button type="button" class="bouton-tri" data-tri="prix">Prix</button>
+        </div>
+        <label class="filtre-garde">
+            <input type="checkbox" id="case-garde">
+            Pharmacies de garde uniquement
+        </label>
+    </div>
+
     <div id="resultats"></div>
     <div id="message"></div>
 </main>
@@ -612,6 +688,8 @@
     const iconeRetrait = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="9" width="16" height="11" rx="1.5" stroke="currentColor" stroke-width="1.7"/><path d="M4 9l2-5h12l2 5" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><line x1="12" y1="13" x2="12" y2="17" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><line x1="10" y1="15" x2="14" y2="15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>`;
     const iconeLivraison = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="8" width="11" height="9" rx="1" stroke="currentColor" stroke-width="1.7"/><path d="M13 11h4l4 3.5V17h-8" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="6.5" cy="18.5" r="1.6" stroke="currentColor" stroke-width="1.6"/><circle cx="16.5" cy="18.5" r="1.6" stroke="currentColor" stroke-width="1.6"/></svg>`;
     const iconeOrdonnance = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 3h9l4 4v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M15 3v4h4" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><line x1="8" y1="12" x2="16" y2="12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="8" y1="16" x2="13" y2="16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>`;
+    const iconeMeilleurPrix = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2v20M17 6H9.5a2.5 2.5 0 0 0 0 5h5a2.5 2.5 0 0 1 0 5H7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>`;
+    const iconeGarde = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>`;
 
     function lireCookie(nom) {
         const valeur = document.cookie
@@ -840,6 +918,9 @@
     const resultatsDiv = document.getElementById("resultats");
     const messageDiv = document.getElementById("message");
     const etatInitial = document.getElementById("etat-initial");
+    const barreFiltres = document.getElementById("barre-filtres");
+    const boutonsTri = document.querySelectorAll(".bouton-tri");
+    const caseGarde = document.getElementById("case-garde");
 
     // Trois cartes "squelette" de largeurs différentes, pour un effet de
     // chargement plus vivant qu'une seule roue qui tourne.
@@ -848,6 +929,143 @@
         <div class="squelette"><div class="barre large"></div><div class="barre moyenne"></div><div class="barre courte"></div></div>
     `;
 
+    // Derniers résultats reçus de l'API, gardés en mémoire pour pouvoir
+    // re-trier / filtrer (distance, prix, garde) sans refaire une requête.
+    let derniersResultats = [];
+    let triActuel = "distance";
+    let filtreGarde = false;
+
+    function construireCarte(resultat, pharmacieDuPanier, estMeilleurPrix) {
+        const carte = document.createElement("div");
+        const dansLePanier = resultat.pharmacie_id === pharmacieDuPanier;
+        carte.className = dansLePanier ? "resultat deja-panier" : "resultat";
+        // Toute valeur texte venant de l'API (nom de pharmacie, de médicament,
+        // URL d'image) passe par echapperHtml() avant d'être insérée : ces noms
+        // sont saisis via l'admin, mais on ne fait jamais confiance à une donnée
+        // qui vient du serveur pour l'injecter telle quelle dans le HTML.
+        const nomPharmacie = echapperHtml(resultat.pharmacie);
+        const nomMedicament = echapperHtml(resultat.medicament);
+        const dosage = echapperHtml(resultat.dosage);
+        const nomQuartier = echapperHtml(resultat.quartier);
+        // L'image est facultative : certains médicaments n'en ont pas encore.
+        const imageHtml = resultat.image_url
+            ? `<img class="image-medicament" src="${echapperHtml(resultat.image_url)}" alt="${nomMedicament}">`
+            : "";
+        carte.innerHTML = `
+            ${imageHtml}
+            <div class="contenu">
+                <div class="entete-resultat">
+                    <h3>${nomPharmacie} — ${nomQuartier}</h3>
+                </div>
+                <div class="badge-verifiee">${iconeVerifiee} Officine vérifiée ONPG/DNPM</div>
+                ${dansLePanier ? `<span class="badge-panier">${iconeVerifiee} Déjà dans ton panier</span>` : ""}
+                ${resultat.est_de_garde ? `<span class="badge-garde">${iconeGarde} De garde</span>` : ""}
+                ${estMeilleurPrix ? `<span class="badge-meilleur-prix">${iconeMeilleurPrix} Meilleur prix</span>` : ""}
+                ${resultat.sur_ordonnance ? `<span class="badge-ordonnance">${iconeOrdonnance} Ordonnance requise</span>` : ""}
+                <div class="ligne">${nomMedicament}${dosage ? ` <span class="badge-dosage">${dosage}</span>` : ""}</div>
+                <div class="ligne prix">${resultat.prix_gnf.toLocaleString("fr-FR")} GNF</div>
+                <div class="ligne">Quantité disponible : ${resultat.quantite_disponible}</div>
+                <div class="distance">${iconePosition} ${resultat.distance_km} km</div>
+                ${estConnecte ? `
+                <div class="ligne-quantite">
+                    <label for="qte-${resultat.stock_id}">Quantité</label>
+                    <input type="number" id="qte-${resultat.stock_id}" class="champ-quantite" min="1" max="${resultat.quantite_disponible}" value="1">
+                </div>
+                ${resultat.sur_ordonnance ? `
+                <div class="bloc-ordonnance">
+                    <label>${iconeOrdonnance} Photo de l'ordonnance (obligatoire pour ce médicament)</label>
+                    <input type="file" class="champ-ordonnance" accept="image/*" capture="environment">
+                </div>
+                ` : ""}
+                ` : ""}
+            </div>
+        `;
+
+        const bouton = document.createElement("button");
+        bouton.className = "bouton-reserver";
+        if (estConnecte) {
+            bouton.textContent = "Ajouter au panier";
+            bouton.addEventListener("click", () => {
+                const champQuantite = carte.querySelector(".champ-quantite");
+                const quantite = Math.max(1, Math.min(
+                    parseInt(champQuantite.value || "1", 10),
+                    resultat.quantite_disponible
+                ));
+
+                const champOrdonnance = carte.querySelector(".champ-ordonnance");
+                const fichierOrdonnance = champOrdonnance && champOrdonnance.files.length > 0
+                    ? champOrdonnance.files[0]
+                    : null;
+                if (champOrdonnance && !fichierOrdonnance) {
+                    alert("Ce médicament est sur ordonnance : merci de joindre une photo de l'ordonnance avant de l'ajouter au panier.");
+                    return;
+                }
+
+                const ajoute = ajouterAuPanier(resultat, quantite, fichierOrdonnance);
+                if (ajoute) {
+                    bouton.textContent = "Ajouté ✓";
+                    setTimeout(() => { bouton.textContent = "Ajouter au panier"; }, 1200);
+                }
+            });
+        } else {
+            bouton.textContent = "Se connecter pour réserver";
+            bouton.addEventListener("click", () => {
+                window.location.href = "/patients/connexion/";
+            });
+        }
+        carte.querySelector(".contenu").appendChild(bouton);
+        return carte;
+    }
+
+    // Prend les derniers résultats reçus, applique le filtre "de garde" et le
+    // tri choisi (distance/prix), puis redessine — sans nouvelle requête au
+    // serveur, tout est déjà en mémoire dans derniersResultats.
+    function afficherResultats() {
+        let resultats = filtreGarde
+            ? derniersResultats.filter((r) => r.est_de_garde)
+            : derniersResultats.slice();
+
+        resultatsDiv.innerHTML = "";
+
+        if (resultats.length === 0) {
+            messageDiv.textContent = filtreGarde
+                ? "Aucune pharmacie de garde n'a ce médicament en stock pour le moment."
+                : "Aucune pharmacie vérifiée n'a ce médicament en stock pour le moment.";
+            return;
+        }
+        messageDiv.textContent = "";
+
+        // Priorité 1 : la pharmacie déjà dans le panier (voir ajouterAuPanier).
+        // Priorité 2 : le tri choisi par le patient (distance ou prix).
+        const pharmacieDuPanier = panier.length > 0 ? panier[0].pharmacieId : null;
+        resultats.sort((a, b) => {
+            if (a.pharmacie_id === pharmacieDuPanier) return -1;
+            if (b.pharmacie_id === pharmacieDuPanier) return 1;
+            return triActuel === "prix" ? a.prix_gnf - b.prix_gnf : a.distance_km - b.distance_km;
+        });
+
+        const prixMin = Math.min(...resultats.map((r) => r.prix_gnf));
+
+        resultats.forEach((resultat) => {
+            const carte = construireCarte(resultat, pharmacieDuPanier, resultat.prix_gnf === prixMin);
+            resultatsDiv.appendChild(carte);
+        });
+    }
+
+    boutonsTri.forEach((bouton) => {
+        bouton.addEventListener("click", () => {
+            triActuel = bouton.dataset.tri;
+            boutonsTri.forEach((b) => b.classList.toggle("actif", b === bouton));
+            afficherResultats();
+        });
+    });
+    if (caseGarde) {
+        caseGarde.addEventListener("change", () => {
+            filtreGarde = caseGarde.checked;
+            afficherResultats();
+        });
+    }
+
     form.addEventListener("submit", async (evenement) => {
         evenement.preventDefault();
         const nom = document.getElementById("nom-medicament").value.trim();
@@ -855,6 +1073,7 @@
 
         boutonRecherche.disabled = true;
         etatInitial.style.display = "none";
+        barreFiltres.style.display = "none";
         resultatsDiv.innerHTML = squelette;
         messageDiv.textContent = "";
 
@@ -874,99 +1093,9 @@
                 return;
             }
 
-            // Si le panier contient déjà des produits d'une pharmacie, on remonte
-            // cette pharmacie en tête de liste ici si elle a aussi ce produit :
-            // évite au patient de la chercher manuellement dans les résultats
-            // pour savoir s'il peut tout regrouper dans la même commande.
-            const pharmacieDuPanier = panier.length > 0 ? panier[0].pharmacieId : null;
-            if (pharmacieDuPanier !== null) {
-                donnees.sort((a, b) => {
-                    if (a.pharmacie_id === pharmacieDuPanier) return -1;
-                    if (b.pharmacie_id === pharmacieDuPanier) return 1;
-                    return 0;
-                });
-            }
-
-            donnees.forEach((resultat) => {
-                const carte = document.createElement("div");
-                const dansLePanier = resultat.pharmacie_id === pharmacieDuPanier;
-                carte.className = dansLePanier ? "resultat deja-panier" : "resultat";
-                // Toute valeur texte venant de l'API (nom de pharmacie, de médicament,
-                // URL d'image) passe par echapperHtml() avant d'être insérée : ces noms
-                // sont saisis via l'admin, mais on ne fait jamais confiance à une donnée
-                // qui vient du serveur pour l'injecter telle quelle dans le HTML.
-                const nomPharmacie = echapperHtml(resultat.pharmacie);
-                const nomMedicament = echapperHtml(resultat.medicament);
-                const dosage = echapperHtml(resultat.dosage);
-                const nomQuartier = echapperHtml(resultat.quartier);
-                // L'image est facultative : certains médicaments n'en ont pas encore.
-                const imageHtml = resultat.image_url
-                    ? `<img class="image-medicament" src="${echapperHtml(resultat.image_url)}" alt="${nomMedicament}">`
-                    : "";
-                carte.innerHTML = `
-                    ${imageHtml}
-                    <div class="contenu">
-                        <div class="entete-resultat">
-                            <h3>${nomPharmacie} — ${nomQuartier}</h3>
-                        </div>
-                        <div class="badge-verifiee">${iconeVerifiee} Officine vérifiée ONPG/DNPM</div>
-                        ${dansLePanier ? `<span class="badge-panier">${iconeVerifiee} Déjà dans ton panier</span>` : ""}
-                        ${resultat.sur_ordonnance ? `<span class="badge-ordonnance">${iconeOrdonnance} Ordonnance requise</span>` : ""}
-                        <div class="ligne">${nomMedicament}${dosage ? ` <span class="badge-dosage">${dosage}</span>` : ""}</div>
-                        <div class="ligne prix">${resultat.prix_gnf.toLocaleString("fr-FR")} GNF</div>
-                        <div class="ligne">Quantité disponible : ${resultat.quantite_disponible}</div>
-                        <div class="distance">${iconePosition} ${resultat.distance_km} km</div>
-                        ${estConnecte ? `
-                        <div class="ligne-quantite">
-                            <label for="qte-${resultat.stock_id}">Quantité</label>
-                            <input type="number" id="qte-${resultat.stock_id}" class="champ-quantite" min="1" max="${resultat.quantite_disponible}" value="1">
-                        </div>
-                        ${resultat.sur_ordonnance ? `
-                        <div class="bloc-ordonnance">
-                            <label>${iconeOrdonnance} Photo de l'ordonnance (obligatoire pour ce médicament)</label>
-                            <input type="file" class="champ-ordonnance" accept="image/*" capture="environment">
-                        </div>
-                        ` : ""}
-                        ` : ""}
-                    </div>
-                `;
-
-                const bouton = document.createElement("button");
-                bouton.className = "bouton-reserver";
-                if (estConnecte) {
-                    bouton.textContent = "Ajouter au panier";
-                    bouton.addEventListener("click", () => {
-                        const champQuantite = carte.querySelector(".champ-quantite");
-                        const quantite = Math.max(1, Math.min(
-                            parseInt(champQuantite.value || "1", 10),
-                            resultat.quantite_disponible
-                        ));
-
-                        const champOrdonnance = carte.querySelector(".champ-ordonnance");
-                        const fichierOrdonnance = champOrdonnance && champOrdonnance.files.length > 0
-                            ? champOrdonnance.files[0]
-                            : null;
-                        if (champOrdonnance && !fichierOrdonnance) {
-                            alert("Ce médicament est sur ordonnance : merci de joindre une photo de l'ordonnance avant de l'ajouter au panier.");
-                            return;
-                        }
-
-                        const ajoute = ajouterAuPanier(resultat, quantite, fichierOrdonnance);
-                        if (ajoute) {
-                            bouton.textContent = "Ajouté ✓";
-                            setTimeout(() => { bouton.textContent = "Ajouter au panier"; }, 1200);
-                        }
-                    });
-                } else {
-                    bouton.textContent = "Se connecter pour réserver";
-                    bouton.addEventListener("click", () => {
-                        window.location.href = "/patients/connexion/";
-                    });
-                }
-                carte.querySelector(".contenu").appendChild(bouton);
-
-                resultatsDiv.appendChild(carte);
-            });
+            derniersResultats = donnees;
+            barreFiltres.style.display = "flex";
+            afficherResultats();
         } catch (erreur) {
             resultatsDiv.innerHTML = "";
             messageDiv.textContent = "Impossible de contacter le serveur. Réessaie dans un instant.";

@@ -72,6 +72,7 @@ def recherche_medicament(request):
             "quantite_disponible": stock.quantite_disponible,
             "distance_km": round(distance_km, 2),
             "sur_ordonnance": stock.medicament.est_sur_ordonnance,  # pour afficher le champ photo côté front
+            "est_de_garde": stock.pharmacie.est_de_garde,
         })
 
     donnees.sort(key=lambda d: d["distance_km"])  # plus proche en premier
