@@ -78,6 +78,7 @@ def recherche_medicament(request):
             "quartier": stock.pharmacie.get_quartier_display(),
             "medicament": stock.medicament.nom_commercial,
             "dosage": stock.medicament.dosage,
+            "categorie": stock.medicament.categorie,  # sert à choisir l'icône générique si pas de vraie photo
             "image_url": image_url,
             "prix_gnf": stock.prix_unitaire_gnf,
             "quantite_disponible": stock.quantite_disponible,
