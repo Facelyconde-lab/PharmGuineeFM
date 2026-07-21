@@ -812,10 +812,9 @@
         return div.innerHTML;
     }
 
-    // --- Panier -----------------------------------------------------------
-    // Un panier = les produits d'UNE SEULE pharmacie (logique : une commande
+    // panier = les produits d'une seule pharmacie (logique : une commande
     // groupée part d'une seule officine, pour le retrait/la livraison). Reste
-    // en mémoire le temps de la page ; pas besoin de le garder après un
+    // en mémoire le temps de la page, pas besoin de le garder après un
     // rechargement, la recherche est rapide à refaire.
     let panier = []; // { stockId, pharmacieId, pharmacieNom, medicament, dosage, prix, quantite, quantiteDisponible, surOrdonnance, fichierOrdonnance }
 

@@ -29,7 +29,7 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1,localhost', cast=Csv())
 
-# --- sécu prod, actif seulement si DEBUG=False (jamais en local, pas de HTTPS avec runserver) ---
+# sécu prod, actif seulement si DEBUG=False (jamais en local, pas de HTTPS avec runserver)
 # données médicales dedans (ordonnances, commandes) donc on force le chiffrement en ligne
 #
 # SECURE_PROXY_SSL_HEADER obligatoire sur PythonAnywhere : leur proxy termine le HTTPS puis
@@ -41,7 +41,7 @@ SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
 SECURE_HSTS_SECONDS = 3600 if not DEBUG else 0  # 1h pour l'instant, à monter une fois le HTTPS stable confirmé
 
-# --- emails (notif de suivi de commande à chaque changement de statut) ---
+# emails (notif de suivi de commande à chaque changement de statut)
 # DEBUG=True : rien n'est vraiment envoyé, Django affiche juste dans le terminal (backend console)
 # prod : SMTP Gmail avec mot de passe d'application (jamais le vrai mdp, voir .env.example)
 EMAIL_BACKEND = config(

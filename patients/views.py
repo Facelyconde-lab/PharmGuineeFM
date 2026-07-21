@@ -69,7 +69,7 @@ def visiteurs(request):
     Utilisateur = get_user_model()
     tous_comptes = Utilisateur.objects.all()
 
-    # --- comptes créés, par catégorie ---
+    # comptes créés, par catégorie
     total_comptes = tous_comptes.count()
     ids_pharmaciens = set(
         Pharmacie.objects.exclude(compte_gestionnaire=None).values_list(
@@ -80,11 +80,11 @@ def visiteurs(request):
     total_pharmaciens = len(ids_pharmaciens)
     total_patients = total_comptes - total_staff - total_pharmaciens
 
-    # --- connecté "maintenant" : pas de websocket ici, donc on prend les
-    # sessions Django encore valides (pas expirées) et on regarde celles qui
-    # portent un utilisateur connecté. C'est une approximation - "valide" ne
-    # veut pas dire "en train de cliquer à la seconde près" - mais c'est ce
-    # que Django permet de savoir sans ajouter un système de présence à part.
+    # connecté "maintenant" : pas de websocket ici, donc on prend les sessions
+    # Django encore valides (pas expirées) et on regarde celles qui portent un
+    # utilisateur connecté. C'est une approximation, "valide" ne veut pas dire
+    # "en train de cliquer à la seconde près", mais c'est ce que Django permet
+    # de savoir sans ajouter un système de présence à part.
     sessions_actives = Session.objects.filter(expire_date__gte=timezone.now())
     ids_connectes = set()
     for session in sessions_actives:
@@ -102,7 +102,7 @@ def visiteurs(request):
             role = "Patient"
         utilisateurs_connectes.append({"utilisateur": utilisateur, "role": role})
 
-    # --- recherches, connectées vs anonymes ---
+    # recherches, connectées vs anonymes
     total_recherches = VisiteRecherche.objects.count()
     recherches_connectees = VisiteRecherche.objects.filter(patient__isnull=False).count()
     recherches_anonymes = total_recherches - recherches_connectees
@@ -115,9 +115,9 @@ def visiteurs(request):
         .count()
     )
 
-    # --- idée en plus 1 : tendance des recherches sur 7 jours, pour voir
-    # d'un coup d'oeil si le trafic monte ou baisse (même logique que les
-    # graphes du tableau de bord ministère) ---
+    # bonus : tendance des recherches sur 7 jours, pour voir d'un coup d'oeil
+    # si le trafic monte ou baisse (même logique que les graphes du tableau
+    # de bord ministère)
     aujourdhui = timezone.localdate()
     tendance_recherches = []
     for decalage in range(6, -1, -1):
@@ -127,8 +127,8 @@ def visiteurs(request):
             "total": VisiteRecherche.objects.filter(date_creation__date=jour).count(),
         })
 
-    # --- idée en plus 2 : nouveaux comptes sur 7 jours, pour suivre si les
-    # patients s'inscrivent réellement plutôt que juste chercher sans compte ---
+    # bonus : nouveaux comptes sur 7 jours, pour suivre si les patients
+    # s'inscrivent réellement plutôt que juste chercher sans compte
     nouveaux_comptes_7j = tous_comptes.filter(
         date_joined__date__gte=aujourdhui - timezone.timedelta(days=6)
     ).count()

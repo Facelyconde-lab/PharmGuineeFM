@@ -343,10 +343,10 @@
         scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
     };
 
-    // --- 1. Répartition globale des stocks (doughnut) --------------------
-    // Calcul en JavaScript plutôt que dans le template Django, qui ne fait
-    // pas facilement d'arithmétique : on réutilise simplement les chiffres
-    // déjà affichés dans les cartes juste au-dessus.
+    // répartition globale des stocks (doughnut) - calcul en JS plutôt que
+    // dans le template Django, qui ne fait pas facilement d'arithmétique :
+    // on réutilise simplement les chiffres déjà affichés dans les cartes
+    // juste au-dessus.
     const stockOk = Math.max(0, {{ total_lignes_stock }} - {{ total_en_rupture }} - {{ total_stock_faible }});
     new Chart(document.getElementById("grapheRepartitionStocks"), {
         type: "doughnut",
@@ -365,7 +365,7 @@
         },
     });
 
-    // --- 2. Pénuries par médicament (barres) ------------------------------
+    // pénuries par médicament (barres)
     {% if penuries_par_medicament %}
     new Chart(document.getElementById("graphePenuries"), {
         type: "bar",
@@ -383,7 +383,7 @@
     });
     {% endif %}
 
-    // --- 3. Stocks faibles par médicament (barres) -------------------------
+    // stocks faibles par médicament (barres)
     {% if stocks_faibles_par_medicament %}
     new Chart(document.getElementById("grapheStocksFaibles"), {
         type: "bar",
@@ -401,10 +401,9 @@
     });
     {% endif %}
 
-    // --- 4. Taux de rupture par quartier (barres) ---------------------------
-    // Couleur calculée en JS à partir des valeurs elles-mêmes (rouge au-delà de
-    // 20%, comme le badge déjà utilisé dans le tableau juste en dessous),
-    // plutôt que de faire ce calcul dans le template Django.
+    // taux de rupture par quartier (barres) - couleur calculée en JS à partir
+    // des valeurs elles-mêmes (rouge au-delà de 20%, comme le badge déjà
+    // utilisé dans le tableau juste en dessous), plutôt que dans le template.
     const tauxRuptureQuartiers = [{% for ligne in tendances_par_quartier %}{{ ligne.taux_rupture }},{% endfor %}];
     new Chart(document.getElementById("grapheQuartiers"), {
         type: "bar",
@@ -421,7 +420,7 @@
         options: optionsBase,
     });
 
-    // --- 5. Commandes par statut (doughnut) ---------------------------------
+    // commandes par statut (doughnut)
     {% if commandes_par_statut %}
     new Chart(document.getElementById("grapheCommandes"), {
         type: "doughnut",

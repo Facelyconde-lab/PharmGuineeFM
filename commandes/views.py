@@ -51,23 +51,15 @@ class CommandeListCreateView(generics.ListCreateAPIView):
 
 
 class PanierCreateView(APIView):
-    """
-    POST /api/commandes/panier/ - réservation groupée : plusieurs produits d'une
-    même pharmacie validés d'un coup (le panier côté front), plutôt qu'une
-    réservation à la fois comme CommandeListCreateView. Chaque produit reste sa
-    propre Commande (statut suivi séparément par la pharmacie), mais elles
-    partagent un même groupe_commande pour être affichées ensemble côté patient.
-
-    Champs attendus (multipart - il peut y avoir des photos d'ordonnance) :
-      lignes : JSON '[{"stock_id": 12, "quantite": 2}, ...]'
-      mode_livraison, adresse_livraison : partagés pour tout le panier
-      ordonnance_0, ordonnance_1, ... : photo pour la ligne à cet index (même
-      ordre que "lignes"), si son médicament est vendu sur ordonnance
-    """
+    """POST /api/commandes/panier/ - plusieurs produits d'une même pharmacie validés d'un coup (panier), au lieu d'une réservation à la fois."""
 
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
+        # multipart, vu qu'il peut y avoir des photos d'ordonnance : lignes =
+        # JSON '[{"stock_id": 12, "quantite": 2}, ...]', mode_livraison /
+        # adresse_livraison partagés pour tout le panier, et ordonnance_0,
+        # ordonnance_1... = la photo pour la ligne à cet index si besoin
         try:
             lignes = json.loads(request.data.get("lignes", "[]"))
         except (TypeError, ValueError):

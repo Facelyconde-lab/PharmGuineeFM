@@ -13,7 +13,7 @@ def tableau_de_bord(request):
     # pas de gérer des permissions fines, autant réutiliser le mécanisme staff de Django
     """Vue d'ensemble ministère : pénuries, tendances par quartier, médicaments critiques."""
 
-    # --- vue d'ensemble ---
+    # vue d'ensemble
     total_pharmacies = Pharmacie.objects.filter(est_verifiee=True).count()
     total_medicaments = Medicament.objects.count()
     total_lignes_stock = Stock.objects.count()
@@ -25,7 +25,7 @@ def tableau_de_bord(request):
         round(total_en_rupture / total_lignes_stock * 100, 1) if total_lignes_stock else 0
     )
 
-    # --- pénuries par médicament (rupture dans plusieurs pharmacies = pas un cas isolé) ---
+    # pénuries par médicament (rupture dans plusieurs pharmacies = pas un cas isolé)
     penuries_par_medicament = (
         Medicament.objects.annotate(
             nb_pharmacies_total=Count(
@@ -68,7 +68,7 @@ def tableau_de_bord(request):
         .order_by("-nb_pharmacies_stock_faible")
     )
 
-    # --- tendances par quartier ---
+    # tendances par quartier
     tendances_par_quartier = []
     for code_quartier, nom_quartier in Pharmacie.QUARTIERS:
         pharmacies_quartier = Pharmacie.objects.filter(
@@ -97,7 +97,7 @@ def tableau_de_bord(request):
         if medicament.est_sur_ordonnance and medicament.nb_pharmacies_rupture >= 2
     ]
 
-    # --- commandes par statut ---
+    # commandes par statut
     libelles_statuts = dict(Commande.STATUTS)
     commandes_par_statut = [
         {
