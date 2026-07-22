@@ -345,21 +345,25 @@
         border-radius: 12px;
         margin-top: 8px;
     }
-    /* Lien vers Google Maps pour s'y rendre - à côté de la distance plutôt que
-       caché plus bas, vu que "je sais que le produit existe mais comment je
-       fais pour y aller" est justement le problème qu'on règle ici. */
+    /* Lien vers Google Maps pour s'y rendre - en vrai bouton bien visible sur sa
+       propre ligne, pas juste un petit lien texte qui se noie à côté du reste
+       (retour d'un patient : il passait à côté sans le voir). */
     .resultat .lien-itineraire {
-        display: inline-flex;
+        display: flex;
+        width: fit-content;
         align-items: center;
-        gap: 4px;
-        font-size: 0.78rem;
+        gap: 6px;
+        font-size: 0.85rem;
         font-weight: 600;
         color: var(--bleu);
         text-decoration: none;
-        margin-top: 8px;
-        margin-left: 8px;
+        margin-top: 10px;
+        padding: 7px 14px;
+        border: 1.5px solid var(--bleu);
+        border-radius: 8px;
+        background: var(--bleu-clair, #E8EEF4);
     }
-    .resultat .lien-itineraire:hover { text-decoration: underline; }
+    .resultat .lien-itineraire:hover { background: var(--bleu); color: white; }
     .choix-livraison {
         display: flex;
         gap: 6px;
@@ -1088,7 +1092,7 @@
                 <div class="ligne prix">${resultat.prix_gnf.toLocaleString("fr-FR")} GNF</div>
                 <div class="ligne">Quantité disponible : ${resultat.quantite_disponible}</div>
                 <div class="distance">${iconePosition} ${resultat.distance_km} km</div>
-                <a class="lien-itineraire" href="https://www.google.com/maps/dir/?api=1&origin=${latitude},${longitude}&destination=${resultat.latitude_pharmacie},${resultat.longitude_pharmacie}" target="_blank" rel="noopener noreferrer">${iconeItineraire} Itinéraire</a>
+                <a class="lien-itineraire" href="https://www.google.com/maps/dir/?api=1&origin=${latitude},${longitude}&destination=${resultat.latitude_pharmacie},${resultat.longitude_pharmacie}" target="_blank" rel="noopener noreferrer">${iconeItineraire} Cliquez ici pour l'itinéraire</a>
                 ${estConnecte ? `
                 <div class="ligne-quantite">
                     <label for="qte-${resultat.stock_id}">Quantité</label>
