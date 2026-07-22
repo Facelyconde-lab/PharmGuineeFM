@@ -345,6 +345,21 @@
         border-radius: 12px;
         margin-top: 8px;
     }
+    /* Lien vers Google Maps pour s'y rendre - à côté de la distance plutôt que
+       caché plus bas, vu que "je sais que le produit existe mais comment je
+       fais pour y aller" est justement le problème qu'on règle ici. */
+    .resultat .lien-itineraire {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: var(--bleu);
+        text-decoration: none;
+        margin-top: 8px;
+        margin-left: 8px;
+    }
+    .resultat .lien-itineraire:hover { text-decoration: underline; }
     .choix-livraison {
         display: flex;
         gap: 6px;
@@ -716,6 +731,7 @@
     const iconeOrdonnance = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 3h9l4 4v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M15 3v4h4" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><line x1="8" y1="12" x2="16" y2="12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="8" y1="16" x2="13" y2="16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>`;
     const iconeMeilleurPrix = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2v20M17 6H9.5a2.5 2.5 0 0 0 0 5h5a2.5 2.5 0 0 1 0 5H7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>`;
     const iconeGarde = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>`;
+    const iconeItineraire = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 19 19 4M19 4h-6M19 4v6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
     // Une seule silhouette (gélule) réutilisée pour toutes les catégories - ce qui
     // change c'est la couleur, pas le dessin. Ça évite de devoir dessiner une
@@ -1072,6 +1088,7 @@
                 <div class="ligne prix">${resultat.prix_gnf.toLocaleString("fr-FR")} GNF</div>
                 <div class="ligne">Quantité disponible : ${resultat.quantite_disponible}</div>
                 <div class="distance">${iconePosition} ${resultat.distance_km} km</div>
+                <a class="lien-itineraire" href="https://www.google.com/maps/dir/?api=1&origin=${latitude},${longitude}&destination=${resultat.latitude_pharmacie},${resultat.longitude_pharmacie}" target="_blank" rel="noopener noreferrer">${iconeItineraire} Itinéraire</a>
                 ${estConnecte ? `
                 <div class="ligne-quantite">
                     <label for="qte-${resultat.stock_id}">Quantité</label>

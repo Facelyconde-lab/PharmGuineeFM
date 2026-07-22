@@ -76,6 +76,8 @@ def recherche_medicament(request):
             "pharmacie": stock.pharmacie.nom,
             "pharmacie_id": stock.pharmacie_id,  # pour vérifier côté front que le panier vient bien d'une seule pharmacie
             "quartier": stock.pharmacie.get_quartier_display(),
+            "latitude_pharmacie": stock.pharmacie.latitude,  # pour le lien "Itinéraire" vers Google Maps
+            "longitude_pharmacie": stock.pharmacie.longitude,
             "medicament": stock.medicament.nom_commercial,
             "dosage": stock.medicament.dosage,
             "categorie": stock.medicament.categorie,  # sert à choisir l'icône générique si pas de vraie photo
