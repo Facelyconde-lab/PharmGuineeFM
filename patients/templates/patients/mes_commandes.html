@@ -128,6 +128,29 @@
         border-radius: 6px;
     }
     .date { font-size: 0.75rem; color: var(--gris); margin-top: 10px; }
+
+    .messages { margin-bottom: 16px; }
+    .message {
+        padding: 10px 14px;
+        border-radius: 8px;
+        font-size: 0.88rem;
+        margin-bottom: 8px;
+    }
+    .message.success { background: var(--vert-clair); color: var(--vert); }
+    .message.error { background: var(--rouge-clair); color: var(--rouge); }
+
+    .bouton-annuler {
+        margin-top: 6px;
+        padding: 5px 12px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: var(--rouge);
+        background: white;
+        border: 1.5px solid var(--rouge);
+        border-radius: 7px;
+        cursor: pointer;
+    }
+    .bouton-annuler:hover { background: var(--rouge-clair); }
 </style>
 </head>
 <body>
@@ -148,6 +171,14 @@
         Retour à la recherche
     </a>
     <h2>Mes commandes</h2>
+
+    {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+                <div class="message {{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
 
     {% if groupes %}
         {% for groupe in groupes %}
@@ -179,6 +210,12 @@
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align: -1px;"><rect x="5" y="11" width="14" height="9" rx="1.5" stroke="currentColor" stroke-width="1.7"/><path d="M8 11V7a4 4 0 0 1 8 0v4" stroke="currentColor" stroke-width="1.7"/></svg>
                                 Scellé : {{ ligne.numero_scelle }}
                             </span>
+                        {% endif %}
+                        {% if ligne.annulable %}
+                            <form method="post" action="{% url 'patients:annuler_commande' ligne.id %}" onsubmit="return confirm('Annuler cette commande ? Le produit sera de nouveau disponible pour les autres patients.');">
+                                {% csrf_token %}
+                                <button type="submit" class="bouton-annuler">Annuler cette commande</button>
+                            </form>
                         {% endif %}
                     </div>
                 {% endfor %}

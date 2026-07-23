@@ -90,3 +90,22 @@ def envoyer_notification_statut(commande):
         sujet=f"PharmaSila — Commande #{commande.pk} : {commande.get_statut_display()}",
         corps=corps,
     )
+
+
+def envoyer_notification_annulation_patient(commande):
+    """Email à la pharmacie quand c'est le patient qui annule (pas elle) - pour qu'elle ne prépare pas la commande pour rien."""
+    gestionnaire = commande.stock.pharmacie.compte_gestionnaire
+    if not gestionnaire or not gestionnaire.email:
+        return
+
+    medicament = commande.stock.medicament.nom_commercial
+    corps = (
+        f"Le patient {commande.patient.username} a annulé sa commande de {medicament} "
+        f"(commande #{commande.pk}). Le stock a été remis à disposition automatiquement, "
+        f"rien à faire de ton côté."
+    )
+    _envoyer_email(
+        destinataire=gestionnaire.email,
+        sujet=f"PharmaSila — Commande #{commande.pk} annulée par le patient",
+        corps=corps,
+    )
